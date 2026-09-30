@@ -9,7 +9,9 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': 'http://localhost:5176',
-      '/openapi': 'http://localhost:5176', // Scalari (/api/docs) OpenAPI dokument
+      // Scalari (/api/docs) OpenAPI dokument; algne Host päis, et dokumendi serveri URL oleks
+      // localhost:5173 ja Scalari päringud läheksid samuti proksi kaudu (5176 poole blokeeriks CORS)
+      '/openapi': { target: 'http://localhost:5176', changeOrigin: false },
     },
   },
   build: {
