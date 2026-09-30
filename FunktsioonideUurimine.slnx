@@ -1,0 +1,11 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/backend/">
+    <Project Path="backend/FunktsioonideUurimine.Api/FunktsioonideUurimine.Api.csproj" />
+    <Project Path="backend/FunktsioonideUurimine.Tests/FunktsioonideUurimine.Tests.csproj" />
+  </Folder>
+</Solution>

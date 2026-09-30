@@ -1,0 +1,15 @@
+{
+  "name": "funktsioonide-uurimine",
+  "private": true,
+  "description": "Funktsioonide uurimise veebirakendus: ASP.NET Core 10 + EF Core + React",
+  "scripts": {
+    "postinstall": "npm --prefix frontend install",
+    "dev": "concurrently -k -n api,web -c blue,magenta \"dotnet watch run --project backend/FunktsioonideUurimine.Api --non-interactive\" \"npm --prefix frontend run dev\"",
+    "build": "npm --prefix frontend run build && dotnet build -c Release",
+    "start": "npm --prefix frontend run build && dotnet run --project backend/FunktsioonideUurimine.Api",
+    "test": "dotnet test"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}
