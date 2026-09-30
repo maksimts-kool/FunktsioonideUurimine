@@ -9,6 +9,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': 'http://localhost:5176',
+      '/openapi': 'http://localhost:5176', // Scalari (/api/docs) OpenAPI dokument
     },
   },
   build: {
