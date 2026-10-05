@@ -9,30 +9,29 @@ interface Props {
   valem: string
   algus: number
   lopp: number
+  /** Kas joonestada ka tuletised ja käänupunktid (kasutaja valis „Näita rohkem“). */
+  koikDetailid?: boolean
 }
 
-const MAX_PUNKTE = 20000
+/** Nii mitmeks lõiguks jagatakse vahemik; samm arvutatakse sellest automaatselt. */
+const PUNKTE = 500
 
-/** Graafik koos vahemiku ja sammu valikuga; punktid arvutab server valitud vahemikus antud sammuga. */
-export function GraafikuPaneel({ valem, algus, lopp }: Props) {
-  const [vahemik, setVahemik] = useState({ algus, lopp, samm: 0.05 })
-  // kui salvestatud/vormis olev vahemik muutub, joonestame uue vahemiku (samm jääb alles)
+/** Graafik koos vahemiku valikuga; punktid arvutab server valitud vahemikus. */
+export function GraafikuPaneel({ valem, algus, lopp, koikDetailid = false }: Props) {
+  const [vahemik, setVahemik] = useState({ algus, lopp })
+  // kui salvestatud/vormis olev vahemik muutub, joonestame uue vahemiku
   const [eelmised, setEelmised] = useState({ algus, lopp })
   if (eelmised.algus !== algus || eelmised.lopp !== lopp) {
     setEelmised({ algus, lopp })
-    setVahemik((v) => ({ ...v, algus, lopp }))
+    setVahemik({ algus, lopp })
   }
   const [viivitusega] = useDebouncedValue(vahemik, 300)
 
-  const viga =
-    viivitusega.algus >= viivitusega.lopp
-      ? 'Vahemiku algus peab olema väiksem kui lõpp.'
-      : viivitusega.samm <= 0 || (viivitusega.lopp - viivitusega.algus) / viivitusega.samm > MAX_PUNKTE
-        ? `Samm on liiga väike (kuni ${MAX_PUNKTE} punkti).`
-        : null
-  const graafik = useGraafik(viga ? null : { valem, ...viivitusega })
+  const viga = viivitusega.algus >= viivitusega.lopp ? 'Vahemiku algus peab olema väiksem kui lõpp.' : null
+  const samm = Math.max((viivitusega.lopp - viivitusega.algus) / PUNKTE, 0.0001)
+  const graafik = useGraafik(viga ? null : { valem, ...viivitusega, samm })
 
-  const muuda = (vali: 'algus' | 'lopp' | 'samm') => (v: string | number) =>
+  const muuda = (vali: 'algus' | 'lopp') => (v: string | number) =>
     typeof v === 'number' && setVahemik((eelmine) => ({ ...eelmine, [vali]: v }))
 
   return (
@@ -40,9 +39,8 @@ export function GraafikuPaneel({ valem, algus, lopp }: Props) {
       <Group justify="space-between" align="flex-end" mb="xs" wrap="wrap" gap="xs">
         <Text fw={600}>Graafik</Text>
         <Group gap="xs" wrap="nowrap">
-          <NumberInput size="xs" w={92} label="x algus" value={vahemik.algus} onChange={muuda('algus')} step={1} min={-1000} max={1000} decimalScale={4} />
-          <NumberInput size="xs" w={92} label="x lõpp" value={vahemik.lopp} onChange={muuda('lopp')} step={1} min={-1000} max={1000} decimalScale={4} />
-          <NumberInput size="xs" w={80} label="samm" value={vahemik.samm} onChange={muuda('samm')} step={0.01} min={0.0001} decimalScale={4} />
+          <NumberInput size="xs" w={92} label="x alates" value={vahemik.algus} onChange={muuda('algus')} step={1} min={-1000} max={1000} decimalScale={4} />
+          <NumberInput size="xs" w={92} label="x kuni" value={vahemik.lopp} onChange={muuda('lopp')} step={1} min={-1000} max={1000} decimalScale={4} />
         </Group>
       </Group>
 
@@ -57,13 +55,15 @@ export function GraafikuPaneel({ valem, algus, lopp }: Props) {
           algus={viivitusega.algus}
           lopp={viivitusega.lopp}
           laadib={graafik.isFetching}
+          koikDetailid={koikDetailid}
         />
       ) : (
         <Skeleton height={460} radius="md" animate={graafik.isLoading} />
       )}
 
       <Text size="xs" c="dimmed" mt={4}>
-        Pidev joon – f(x), katkendjoon – f'(x), punktiir – f''(x) (sisse lülitatav legendist). Hiirerattaga saab suurendada.
+        {koikDetailid && "Pidev joon – f(x), katkendjoon – f'(x), punktiir – f''(x) (sisse lülitatav legendist). "}
+        Hiirerattaga saab suurendada.
       </Text>
     </Card>
   )

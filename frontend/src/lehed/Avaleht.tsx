@@ -1,5 +1,5 @@
 import { Button, Card, Group, SimpleGrid, Skeleton, Stack, Text, ThemeIcon, Title } from '@mantine/core'
-import { IconChartLine, IconDatabase, IconMathFunction, IconPlus } from '@tabler/icons-react'
+import { IconChartLine, IconDeviceFloppy, IconMathFunction, IconPlus } from '@tabler/icons-react'
 import { Link } from 'react-router'
 import { useFunktsioonid } from '../api/paringud'
 import { Valem } from '../komponendid/Valem'
@@ -7,18 +7,18 @@ import { Valem } from '../komponendid/Valem'
 const OMADUSED = [
   {
     ikoon: IconMathFunction,
-    pealkiri: 'Sümbolarvutus serveris',
-    tekst: 'MathNet.Symbolics leiab tuletised; nullkohad ja ekstreemumid arvutatakse täpselt (√3, π/2, 1/e).',
+    pealkiri: 'Täpsed vastused',
+    tekst: 'Nullkohad ja ekstreemumid leitakse täpselt, nt √3, π/2 või 1/e – mitte ligikaudsete kümnendmurdudena.',
   },
   {
     ikoon: IconChartLine,
     pealkiri: 'Graafik',
-    tekst: "f(x) ja tuletis f'(x) samal teljestikul, nullkohad, ekstreemumid, käänupunktid ja asümptoodid.",
+    tekst: 'Funktsiooni graafik, millele on märgitud nullkohad ja ekstreemumid.',
   },
   {
-    ikoon: IconDatabase,
-    pealkiri: 'Andmebaas',
-    tekst: 'Uurimised salvestatakse EF Core ja SQLite abil – loo, muuda ja kustuta.',
+    ikoon: IconDeviceFloppy,
+    pealkiri: 'Salvestamine',
+    tekst: 'Uuritud funktsioonid jäävad alles – neid saab hiljem uuesti vaadata, muuta või kustutada.',
   },
 ]
 
@@ -30,8 +30,8 @@ export function Avaleht() {
       <div>
         <Title order={2}>Funktsioonide uurimine</Title>
         <Text c="dimmed">
-          Sisesta funktsioon, mille omadused arvutatakse automaatselt: määramispiirkond, nullkohad, tuletis,
-          kriitilised punktid, ekstreemumid, monotoonsus ja kumerus.
+          Sisesta funktsioon ja saad kohe vastused: määramispiirkond, nullkohad, ekstreemumid ning kasvamis- ja
+          kahanemisvahemikud. Rohkem detaile saab vaadata nupust „Näita rohkem“.
         </Text>
         <Button component={Link} to="/uus" mt="md" leftSection={<IconPlus size={18} />}>
           Uuri uut funktsiooni

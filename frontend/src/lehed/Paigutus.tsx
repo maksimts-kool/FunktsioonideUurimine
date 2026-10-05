@@ -16,7 +16,7 @@ import {
   useMantineColorScheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { IconApi, IconMathFunction, IconMoon, IconPlus, IconSearch, IconSun } from '@tabler/icons-react'
+import { IconMathFunction, IconMoon, IconPlus, IconSearch, IconSun } from '@tabler/icons-react'
 import { useState } from 'react'
 import { Link, Outlet, useLocation, useMatch } from 'react-router'
 import { useFunktsioonid } from '../api/paringud'
@@ -59,12 +59,7 @@ function Funktsioonid({ sulge }: { sulge: () => void }) {
           />
         ))}
       </ScrollArea>
-      <Group justify="space-between" pt="xs">
-        <Text size="xs" c="dimmed">{data ? `${data.length} funktsiooni` : ''}</Text>
-        <Anchor href="/api/docs" target="_blank" size="xs" c="dimmed">
-          <Group gap={4}><IconApi size={14} /> API</Group>
-        </Anchor>
-      </Group>
+      <Text size="xs" c="dimmed" pt="xs">{data ? `${data.length} funktsiooni` : ''}</Text>
     </>
   )
 }

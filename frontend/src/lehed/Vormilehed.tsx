@@ -10,7 +10,7 @@ export function UusFunktsioon() {
       <div>
         <Title order={2}>Uus funktsioon</Title>
         <Text c="dimmed" size="sm">
-          Sisesta valem – määramispiirkond, nullkohad, tuletis, ekstreemumid ja graafik arvutatakse kohe.
+          Sisesta valem – vastused ja graafik ilmuvad kohe.
         </Text>
       </div>
       <FunktsiooniVorm nupuTekst="Salvesta" salvestab={loo.isPending} onSalvesta={loo.mutateAsync} />

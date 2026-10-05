@@ -248,7 +248,7 @@ public static class ValemiParser
                         "pi" => Expression.Pi,
                         "e" => Expression.E,
                         "abs" => throw new ValemiViga(
-                            "abs() ei ole toetatud: MathNet.Symbolics ei oska absoluutväärtuse tuletist leida."),
+                            "abs() ei ole toetatud: absoluutväärtusega funktsiooni ei saa siin uurida."),
                         "sqrt" => AsteTingimusega(Argument(), Avaldised.Ratsionaal(1, 2), m.Positsioon),
                         "cbrt" => AsteTingimusega(Argument(), Avaldised.Ratsionaal(1, 3), m.Positsioon),
                         _ => FunktsioonTingimusega(Funktsioonid[m.Tekst], Argument(), m.Positsioon)

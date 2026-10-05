@@ -1,6 +1,7 @@
 import { Alert, Button, Grid, Group, Loader, Stack, Text, Title } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import { IconAlertTriangle, IconPencil, IconTrash } from '@tabler/icons-react'
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useFunktsioon, useKustuta } from '../api/paringud'
 import { GraafikuPaneel } from '../komponendid/GraafikuPaneel'
@@ -14,6 +15,7 @@ export function Detailvaade() {
   // kustutamise ajal ja järel ei laadita kirjet uuesti (see annaks 404)
   const { data: f, isLoading, error } = useFunktsioon(id, kustuta.isIdle || kustuta.isError)
   const navigeeri = useNavigate()
+  const [koikDetailid, setKoikDetailid] = useState(false)
 
   if (isLoading) return <Loader m="xl" />
   if (error || !f)
@@ -46,8 +48,7 @@ export function Detailvaade() {
           </Title>
           <Text size="xs" c="dimmed" mt={4}>
             Loodud {kuupaev(f.luodudAeg)}
-            {f.muudetudAeg && ` · muudetud ${kuupaev(f.muudetudAeg)}`} · sisestatud kujul{' '}
-            <Text span ff="monospace" size="xs">{f.valem}</Text>
+            {f.muudetudAeg && ` · muudetud ${kuupaev(f.muudetudAeg)}`}
           </Text>
         </div>
         <Group gap="xs">
@@ -61,11 +62,11 @@ export function Detailvaade() {
       </Group>
 
       <Grid gap="md">
-        <Grid.Col span={{ base: 12, lg: 7 }}>
-          <GraafikuPaneel valem={f.valem} algus={f.vahemikAlgus} lopp={f.vahemikLopp} />
-        </Grid.Col>
         <Grid.Col span={{ base: 12, lg: 5 }}>
-          <OmadusteTabel omadused={f} />
+          <OmadusteTabel omadused={f} koikDetailid={koikDetailid} onKoikDetailid={setKoikDetailid} />
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, lg: 7 }}>
+          <GraafikuPaneel valem={f.valem} algus={f.vahemikAlgus} lopp={f.vahemikLopp} koikDetailid={koikDetailid} />
         </Grid.Col>
       </Grid>
     </Stack>

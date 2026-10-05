@@ -15,6 +15,7 @@ import {
 import { useForm } from '@mantine/form'
 import { useDebouncedValue } from '@mantine/hooks'
 import { IconAlertTriangle, IconDeviceFloppy, IconHelpCircle } from '@tabler/icons-react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ApiViga } from '../api/klient'
 import { useAnaluus } from '../api/paringud'
@@ -67,6 +68,7 @@ interface Props {
 /** Loomise ja muutmise vorm; valemit uuritakse juba kirjutamise ajal (eelvaade serverist). */
 export function FunktsiooniVorm({ algvaartused, nupuTekst, salvestab, onSalvesta }: Props) {
   const navigeeri = useNavigate()
+  const [koikDetailid, setKoikDetailid] = useState(false)
   const vorm = useForm<FunktsiooniPaering>({
     mode: 'controlled',
     initialValues: algvaartused ?? { valem: '', vahemikAlgus: -5, vahemikLopp: 5 },
@@ -150,15 +152,21 @@ export function FunktsiooniVorm({ algvaartused, nupuTekst, salvestab, onSalvesta
 
       {eelvaateAndmed && (
         <Grid gap="md">
+          <Grid.Col span={{ base: 12, lg: 5 }}>
+            <OmadusteTabel
+              omadused={eelvaateAndmed}
+              pealkiri="Vastused (veel salvestamata)"
+              koikDetailid={koikDetailid}
+              onKoikDetailid={setKoikDetailid}
+            />
+          </Grid.Col>
           <Grid.Col span={{ base: 12, lg: 7 }}>
             <GraafikuPaneel
               valem={eelvaateAndmed.valem}
               algus={eelvaateAndmed.vahemikAlgus}
               lopp={eelvaateAndmed.vahemikLopp}
+              koikDetailid={koikDetailid}
             />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, lg: 5 }}>
-            <OmadusteTabel omadused={eelvaateAndmed} pealkiri="Eelvaade (veel salvestamata)" />
           </Grid.Col>
         </Grid>
       )}

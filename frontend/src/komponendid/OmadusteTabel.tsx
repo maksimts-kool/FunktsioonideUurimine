@@ -1,4 +1,5 @@
-import { Badge, Card, Group, Stack, Table, Text, Tooltip } from '@mantine/core'
+import { Badge, Button, Card, Group, Stack, Table, Text, Tooltip } from '@mantine/core'
+import { IconChevronDown, IconChevronUp } from '@tabler/icons-react'
 import type { Omadused } from '../api/tyybid'
 import { Valem } from './Valem'
 
@@ -44,15 +45,6 @@ function Vaartus({ tekst }: { tekst: string }) {
   )
 }
 
-function Tuletis({ latex, tekst }: { latex: string | null; tekst: string }) {
-  return (
-    <Stack gap={2}>
-      <Valem latex={latex} varuTekst={tekst} fz="md" />
-      <Text size="xs" c="dimmed" ff="monospace">{tekst}</Text>
-    </Stack>
-  )
-}
-
 interface Rida {
   nimi: string
   tahis: string
@@ -61,19 +53,31 @@ interface Rida {
   latex?: string | null
 }
 
-export function OmadusteTabel({ omadused: o, pealkiri = 'Funktsiooni omadused' }: { omadused: Omadused; pealkiri?: string }) {
-  const read: Rida[] = [
+interface Props {
+  omadused: Omadused
+  pealkiri?: string
+  /** Kas kuvada ka tuletised, käänupunktid jm (muidu ainult põhivastused). */
+  koikDetailid: boolean
+  onKoikDetailid: (v: boolean) => void
+}
+
+/** Põhivastused on kohe näha; ülejäänud omadused avanevad nupust „Näita rohkem“. */
+export function OmadusteTabel({ omadused: o, pealkiri = 'Vastused', koikDetailid, onKoikDetailid }: Props) {
+  const pohiread: Rida[] = [
     { nimi: 'Määramispiirkond', tahis: 'X', tekst: o.maaramispiirkond },
     { nimi: 'Nullkohad', tahis: 'X₀', tekst: o.nullkohad },
+    { nimi: 'Ekstreemumid', tahis: 'yₑ', tekst: o.ekstreemumid },
+    { nimi: 'Kasvamis- ja kahanemisvahemikud', tahis: 'X↑, X↓', tekst: o.monotoonsus },
+  ]
+  const lisaread: Rida[] = [
     { nimi: 'Positiivsus- ja negatiivsuspiirkond', tahis: 'X⁺, X⁻', tekst: o.positiivsus },
     { nimi: 'Tuletis', tahis: "f'(x)", tekst: o.tuletis, latex: o.tuletisLatex },
     { nimi: 'Kriitilised punktid', tahis: 'xₑ', tekst: o.kriitilisedPunktid },
-    { nimi: 'Ekstreemumid', tahis: 'yₑ', tekst: o.ekstreemumid },
-    { nimi: 'Kasvamis- ja kahanemisvahemikud', tahis: 'X↑, X↓', tekst: o.monotoonsus },
     { nimi: 'Teine tuletis', tahis: "f''(x)", tekst: o.teineTuletis, latex: o.teineTuletisLatex },
     { nimi: 'Käänupunktid', tahis: 'K', tekst: o.kaanupunktid },
     { nimi: 'Nõgusus (∪) ja kumerus (∩)', tahis: 'X∪, X∩', tekst: o.kumerus },
   ]
+  const read = koikDetailid ? [...pohiread, ...lisaread] : pohiread
 
   return (
     <Card withBorder radius="md" padding="md">
@@ -97,12 +101,22 @@ export function OmadusteTabel({ omadused: o, pealkiri = 'Funktsiooni omadused' }
                 </Group>
               </Table.Td>
               <Table.Td>
-                {r.latex !== undefined ? <Tuletis latex={r.latex} tekst={r.tekst} /> : <Vaartus tekst={r.tekst} />}
+                {r.latex !== undefined ? <Valem latex={r.latex} varuTekst={r.tekst} fz="md" /> : <Vaartus tekst={r.tekst} />}
               </Table.Td>
             </Table.Tr>
           ))}
         </Table.Tbody>
       </Table>
+      <Button
+        variant="subtle"
+        size="sm"
+        mt="xs"
+        w="fit-content"
+        rightSection={koikDetailid ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+        onClick={() => onKoikDetailid(!koikDetailid)}
+      >
+        {koikDetailid ? 'Näita vähem' : 'Näita rohkem'}
+      </Button>
     </Card>
   )
 }

@@ -32,7 +32,12 @@ interface Props {
   lopp: number
   laadib?: boolean
   korgus?: number
+  /** Kas joonestada ka tuletised ja käänupunktid; vaikimisi ainult f(x), nullkohad ja ekstreemumid. */
+  koikDetailid?: boolean
 }
+
+/** Tuletiste ja käänupunktide seeriad – kuvatakse ainult koos kõigi detailidega. */
+const DETAILSEERIAD = new Set(["f'(x)", "f''(x)", 'Käänupunktid'])
 
 const vorminda = (v: number) => (Math.abs(v) < 1e-10 ? '0' : Number(v.toFixed(4)).toString())
 
@@ -57,7 +62,7 @@ function yUlatus(seeriad: (number | null)[][], asumptoote: boolean) {
   }
 }
 
-export function FunktsiooniGraafik({ andmed, algus, lopp, laadib = false, korgus = 460 }: Props) {
+export function FunktsiooniGraafik({ andmed, algus, lopp, laadib = false, korgus = 460, koikDetailid = false }: Props) {
   const konteiner = useRef<HTMLDivElement>(null)
   const graafik = useRef<echarts.ECharts | null>(null)
   const teema = useMantineTheme()
@@ -95,7 +100,7 @@ export function FunktsiooniGraafik({ andmed, algus, lopp, laadib = false, korgus
     const paarid = (y: (number | null)[]) => andmed.x.map((x, i) => [x, y[i]])
     // asümptootide korral skaleerime ainult f(x) järgi – tuletise poolused on veel järsemad
     const asumptoote = andmed.asumptoodid.length > 0
-    const { min, max } = yUlatus(asumptoote ? [andmed.y] : [andmed.y, andmed.yTuletis], asumptoote)
+    const { min, max } = yUlatus(asumptoote || !koikDetailid ? [andmed.y] : [andmed.y, andmed.yTuletis], asumptoote)
     const telg = {
       type: 'value' as const,
       axisLine: { onZero: true, symbol: ['none', 'arrow'], symbolSize: [7, 10], lineStyle: { color: varvid.telg } },
@@ -137,7 +142,6 @@ export function FunktsiooniGraafik({ andmed, algus, lopp, laadib = false, korgus
           itemSize: 14,
           iconStyle: { borderColor: varvid.tekst },
           feature: {
-            dataZoom: { title: { zoom: 'Suurenda ala', back: 'Tagasi' }, filterMode: 'none' },
             restore: { title: 'Taasta' },
             saveAsImage: { title: 'Salvesta pildina', name: 'funktsioon', backgroundColor: varvid.taust },
           },
@@ -221,13 +225,13 @@ export function FunktsiooniGraafik({ andmed, algus, lopp, laadib = false, korgus
             itemStyle: { color: varvid.kaanupunkt },
             z: 4,
           },
-        ],
+        ].filter((seeria) => koikDetailid || !DETAILSEERIAD.has(seeria.name)),
       },
       { notMerge: true },
     )
     // ülesande nõue: joonis on <canvas id="funktsiooniGraafik"> (ECharts loob lõuendi esimesel joonistamisel)
     g.getDom().querySelector('canvas')?.setAttribute('id', 'funktsiooniGraafik')
-  }, [andmed, algus, lopp, tume, teema])
+  }, [andmed, algus, lopp, tume, teema, koikDetailid])
 
   useEffect(() => {
     const g = graafik.current
@@ -240,7 +244,7 @@ export function FunktsiooniGraafik({ andmed, algus, lopp, laadib = false, korgus
     <div
       ref={konteiner}
       role="img"
-      aria-label={`Funktsiooni ja tuletise graafik vahemikus [${algus}; ${lopp}]`}
+      aria-label={`Funktsiooni graafik vahemikus [${algus}; ${lopp}]`}
       style={{ width: '100%', height: korgus }}
     />
   )
