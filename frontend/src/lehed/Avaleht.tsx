@@ -7,18 +7,15 @@ import { Valem } from '../komponendid/Valem'
 const OMADUSED = [
   {
     ikoon: IconMathFunction,
-    pealkiri: 'Täpsed vastused',
-    tekst: 'Nullkohad ja ekstreemumid leitakse täpselt, nt √3, π/2 või 1/e – mitte ligikaudsete kümnendmurdudena.',
+    pealkiri: 'Täpsed vastused'
   },
   {
     ikoon: IconChartLine,
-    pealkiri: 'Graafik',
-    tekst: 'Funktsiooni graafik, millele on märgitud nullkohad ja ekstreemumid.',
+    pealkiri: 'Graafik'
   },
   {
     ikoon: IconDeviceFloppy,
-    pealkiri: 'Salvestamine',
-    tekst: 'Uuritud funktsioonid jäävad alles – neid saab hiljem uuesti vaadata, muuta või kustutada.',
+    pealkiri: 'Salvestamine'
   },
 ]
 
@@ -29,21 +26,16 @@ export function Avaleht() {
     <Stack gap="lg" maw={1100}>
       <div>
         <Title order={2}>Funktsioonide uurimine</Title>
-        <Text c="dimmed">
-          Sisesta funktsioon ja saad kohe vastused: määramispiirkond, nullkohad, ekstreemumid ning kasvamis- ja
-          kahanemisvahemikud. Rohkem detaile saab vaadata nupust „Näita rohkem“.
-        </Text>
         <Button component={Link} to="/uus" mt="md" leftSection={<IconPlus size={18} />}>
           Uuri uut funktsiooni
         </Button>
       </div>
 
       <SimpleGrid cols={{ base: 1, sm: 3 }}>
-        {OMADUSED.map(({ ikoon: Ikoon, pealkiri, tekst }) => (
+        {OMADUSED.map(({ ikoon: Ikoon, pealkiri }) => (
           <Card key={pealkiri} withBorder radius="md">
-            <ThemeIcon variant="light" size="lg" mb="xs"><Ikoon size={20} /></ThemeIcon>
-            <Text fw={600}>{pealkiri}</Text>
-            <Text size="sm" c="dimmed">{tekst}</Text>
+            <ThemeIcon variant="light" size="xl" mb="sm"><Ikoon size={50} /></ThemeIcon>
+            <Text fw={600} size="lg">{pealkiri}</Text>
           </Card>
         ))}
       </SimpleGrid>
