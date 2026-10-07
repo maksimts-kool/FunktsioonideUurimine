@@ -22,13 +22,11 @@ public static class VorrandiSelgitus
         Lahenda(g, sammud, a, b, 0);
 
         if (juured.KoikPunktid)
-            sammud.Add(new("Avaldis on samaselt null, seega võrdus kehtib iga x korral."));
+            sammud.Add(new("Samaselt null – kehtib iga $x$ korral."));
         else if (juured.Vaartused.Count == 0)
-            sammud.Add(new("**Võrrandil ei ole reaalarvulisi lahendeid.**" +
-                           (juured.Taielik ? "" : $" (Otsiti lõigul {Loik(a, b)}.)")));
-        else
-            sammud.Add(new(juured.Taielik ? "**Lahendid:**" : $"**Lahendid lõigul {Loik(a, b)}:**",
-                Loend(juured.Vaartused)));
+            sammud.Add(new("**Lahendid puuduvad.**" + (juured.Taielik ? "" : $" (Otsiti lõigul {Loik(a, b)}.)")));
+        else if (sammud[^1].Valem != Loend(juured.Vaartused)) // ruutvõrrand jms annab sama loendi juba ise
+            sammud.Add(new(juured.Taielik ? null : $"Lõigul {Loik(a, b)}:", Loend(juured.Vaartused)));
         return sammud;
     }
 
@@ -44,7 +42,7 @@ public static class VorrandiSelgitus
         if (!Avaldised.SisaldabX(g))
         {
             if (Hindaja.Kompileeri(g)(0) != 0)
-                s.Add(new($"Vasak pool on konstant ${L(g)} \\neq 0$, seega lahendid puuduvad."));
+                s.Add(new($"${L(g)} \\neq 0$."));
             return;
         }
 
@@ -53,8 +51,6 @@ public static class VorrandiSelgitus
             if (g is Expression.Sum)
                 s.Add(new("Toome ühise teguri sulgude ette:",
                     $"{string.Join(" \\cdot ", tegurid.Select(t => Sulgudes(L(t))))} = 0"));
-            else if (g is Expression.Product p && p.Item.Any(t => !Avaldised.SisaldabX(t)))
-                s.Add(new("Nullist erinev konstantne tegur lahendeid ei mõjuta."));
 
             // murd: lugeja = 0 (nimetaja ei ole kunagi null ega muuda lahendeid)
             var nimetajas = tegurid.Where(t => t is Expression.Power { Item2: Expression.Number n } && Avaldised.OnNegatiivne(n.Item)).ToList();
@@ -63,26 +59,25 @@ public static class VorrandiSelgitus
                 tegurid = tegurid.Except(nimetajas).ToList();
                 if (tegurid.Count == 0)
                 {
-                    s.Add(new("Murru lugeja on nullist erinev konstant, seega murd ei ole kunagi null."));
+                    s.Add(new("Lugeja on konstant $\\neq 0$."));
                     return;
                 }
                 var lugeja = tegurid.Aggregate(Expression.One, Operators.multiply);
-                s.Add(new("Murd on null parajasti siis, kui lugeja on null (nimetaja peab olema nullist erinev):",
-                    $"{L(lugeja)} = 0"));
+                s.Add(new("Murd $= 0 \\iff$ lugeja $= 0$:", $"{L(lugeja)} = 0"));
             }
 
             if (tegurid.Count > 1)
             {
-                s.Add(new("Korrutis on null parajasti siis, kui vähemalt üks tegur on null:",
+                s.Add(new("Korrutis $= 0$, kui mõni tegur $= 0$:",
                     string.Join(" \\quad \\text{või} \\quad ", tegurid.Select(t => $"{L(t)} = 0"))));
                 foreach (var t in tegurid)
                 {
                     if (t is Expression.Identifier)
                     {
-                        s.Add(new("Tegur $x = 0$ annab lahendi $x = 0$."));
+                        s.Add(new("$x = 0$"));
                         continue;
                     }
-                    s.Add(new($"Tegur ${L(t)} = 0$:"));
+                    s.Add(new($"${L(t)} = 0$:"));
                     Lahenda(t, s, a, b, sugavus + 1);
                     OsaTulemus(t, s, a, b);
                 }
@@ -99,30 +94,29 @@ public static class VorrandiSelgitus
             case Expression.Power { Item2: Expression.Number p } aste:
                 if (Avaldised.OnPositiivne(p.Item))
                 {
-                    s.Add(new("Aste on null parajasti siis, kui alus on null:", $"{L(aste.Item1)} = 0"));
+                    s.Add(new("Aste $= 0 \\iff$ alus $= 0$:", $"{L(aste.Item1)} = 0"));
                     if (aste.Item1 is not Expression.Identifier) Lahenda(aste.Item1, s, a, b, sugavus + 1);
                 }
                 else
                 {
-                    s.Add(new($"${L(g)}$ on murd lugejaga 1 – see ei ole kunagi null."));
+                    s.Add(new($"${L(g)} \\neq 0$ (lugeja on 1)."));
                 }
                 return;
             case Expression.Power { Item1: var alus } when !Avaldised.SisaldabX(alus):
             case Expression.Function f when f.Item1.IsExp:
-                s.Add(new($"Eksponentfunktsioon ${L(g)}$ on alati positiivne, seega lahendid puuduvad."));
+                s.Add(new($"${L(g)} > 0$ alati."));
                 return;
             case Expression.Function f when f.Item1.IsLn || f.Item1.IsLg:
-                s.Add(new($"Logaritm on null parajasti siis, kui logaritmitav on 1:", $"{L(f.Item2)} = 1"));
+                s.Add(new(null, $"{L(g)} = 0 \\iff {L(f.Item2)} = 1"));
                 Lahenda(Operators.subtract(f.Item2, Expression.One), s, a, b, sugavus + 1);
                 return;
             case Expression.Sum summa when Nullkohad.Isoleeri(summa) is { } isoleeritud:
                 if (!Avaldised.SisaldabX(isoleeritud))
                 {
-                    s.Add(new("Viime vabaliikme teisele poole: võrrandi pooled ei saa kunagi võrdsed olla " +
-                              "(eksponent või juur ei saa olla negatiivne), seega lahendid puuduvad."));
+                    s.Add(new("Eksponent/juur ei saa olla negatiivne."));
                     return;
                 }
-                s.Add(new("Viime vabaliikme teisele poole ja rakendame pöördfunktsiooni:", $"{L(isoleeritud)} = 0"));
+                s.Add(new("Pöördfunktsiooniga:", $"{L(isoleeritud)} = 0"));
                 Lahenda(isoleeritud, s, a, b, sugavus + 1);
                 return;
         }
@@ -145,14 +139,14 @@ public static class VorrandiSelgitus
                 var nimetaja = r.Denominator();
                 if (lugeja.IsPolynomial(x) && nimetaja.IsPolynomial(x))
                 {
-                    s.Add(new("Murd on null parajasti siis, kui lugeja on null ja nimetaja ei ole null:",
+                    s.Add(new(null,
                         $"\\frac{{{L(lugeja.Expression)}}}{{{L(nimetaja.Expression)}}} = 0 \\iff " +
                         $"{L(lugeja.Expression)} = 0, \\quad {L(nimetaja.Expression)} \\neq 0"));
                     Polunoom(lugeja, s, "x");
                     var n = Hindaja.Kompileeri(nimetaja.Expression);
                     var valja = Nullkohad.Leia(lugeja.Expression, a, b).Vaartused.Where(v => Math.Abs(n(v)) <= 1e-12).ToList();
                     if (valja.Count > 0)
-                        s.Add(new($"Nimetaja on null kohal ${Loend(valja)}$ – see ei ole lahend."));
+                        s.Add(new($"${Loend(valja)}$ – nimetaja $= 0$, ei sobi."));
                     return;
                 }
             }
@@ -162,9 +156,7 @@ public static class VorrandiSelgitus
             }
         }
 
-        s.Add(new("Seda võrrandit ei saa algebraliselt lahendada, seepärast leitakse lahendid **numbriliselt** " +
-                  $"lõigul {Loik(a, b)}: lõik jagatakse 4000 osaks, märgimuutusega osades täpsustatakse juur " +
-                  "Brenti meetodil; puutepunktid (kus avaldis märki ei muuda) leitakse tuletise nullkohtadena."));
+        s.Add(new($"Algebraliselt ei lahendu – **numbriliselt** lõigul {Loik(a, b)} (märgimuutus + Brenti meetod)."));
     }
 
     /// <summary>Ühe teguri lahendid tegurdamise järel.</summary>
@@ -172,7 +164,7 @@ public static class VorrandiSelgitus
     {
         var j = Nullkohad.Leia(t, a, b);
         if (j.KoikPunktid) return;
-        s.Add(new(j.Vaartused.Count == 0 ? "→ selle teguri nullkohad puuduvad." : $"→ ${Loend(j.Vaartused)}$"));
+        s.Add(new(j.Vaartused.Count == 0 ? "→ lahendid puuduvad" : $"→ ${Loend(j.Vaartused)}$"));
     }
 
     // ---------------------------------------------------------------- polünoomid
@@ -189,11 +181,10 @@ public static class VorrandiSelgitus
                 if (kordajad.Length == 2)
                 {
                     var lahend = Operators.divide(Operators.negate(kordajad[0].Expression), kordajad[1].Expression);
-                    s.Add(new("Avaldame $x$-i:", $"{L(p.Expression)} = 0 \\iff {muutuja} = {L(lahend)}"));
+                    s.Add(new(null, $"{L(p.Expression)} = 0 \\iff {muutuja} = {L(lahend)}"));
                     return;
                 }
-                s.Add(new("Polünoomi kordajad ei ole ratsionaalarvud – juured leitakse numbriliselt " +
-                          "kaasmaatriksi omaväärtustena ja täpsustatakse Newtoni meetodil."));
+                s.Add(new("Irratsionaalsed kordajad – juured **numbriliselt** (kaasmaatriksi omaväärtused, Newton)."));
                 return;
             }
             k = kordajad.Select(c => ((Expression.Number)c.Expression).Item).ToArray();
@@ -226,7 +217,7 @@ public static class VorrandiSelgitus
                     s.Add(new($"${Pol(k, muutuja)} = 0 \\iff {muutuja} = 0$."));
                 return;
             }
-            s.Add(new($"Toome ${xm}$ sulgude ette:",
+            s.Add(new($"${xm}$ sulgude ette:",
                 $"{xm} \\left({Pol(rest, muutuja)}\\right) = 0 \\iff {muutuja} = 0 \\quad \\text{{või}} \\quad {Pol(rest, muutuja)} = 0"));
             k = rest;
             aste = k.Length - 1;
@@ -249,23 +240,18 @@ public static class VorrandiSelgitus
         {
             var jagatis = Horner(k, r);
             var rL = L(Expression.NewNumber(r));
-            s.Add(new($"Ratsionaalsete juurte teoreem: täisarvuliste kordajatega polünoomi ratsionaalne juur on kujul " +
-                      $"$\\frac{{p}}{{q}}$, kus $p$ jagab vabaliiget ja $q$ kõrgeima astme kordajat. Proovides leiame " +
-                      $"$P({rL}) = 0$, seega ${muutuja} = {rL}$ on lahend."));
+            s.Add(new($"Ratsionaalne juur (vabaliikme jagajate seast): $P({rL}) = 0$."));
             var tegur = Pol([-r, BigRational.One], muutuja);
-            s.Add(new($"Jagame polünoomi tehtega $({tegur})$ (Horneri skeem):",
+            s.Add(new($"Horneri skeem, jagame $({tegur})$-ga:",
                 $"{Pol(k, muutuja)} = \\left({tegur}\\right)\\left({Pol(jagatis, muutuja)}\\right) = 0"));
             if (jagatis.Length > 1)
             {
-                s.Add(new($"Jääb lahendada ${Pol(jagatis, muutuja)} = 0$:"));
                 PolunoomKordajatest(jagatis, s, muutuja, sugavus + 1);
             }
             return;
         }
 
-        s.Add(new($"{aste}. astme võrrandil ratsionaalseid juuri ei ole. Selle lahendid leitakse **numbriliselt**: " +
-                  "polünoomi juured on tema kaasmaatriksi omaväärtused (MathNet.Numerics), mida täpsustatakse " +
-                  "Newtoni meetodil."));
+        s.Add(new($"{aste}. aste, ratsionaalseid juuri pole – **numbriliselt** (kaasmaatriksi omaväärtused, Newton)."));
     }
 
     private static void Lineaar(BigRational[] k, List<Samm> s, string muutuja)
@@ -273,7 +259,7 @@ public static class VorrandiSelgitus
         var lahend = -k[0] / k[1];
         var parem = L(Expression.NewNumber(-k[0]));
         var tulemus = L(Expression.NewNumber(lahend));
-        s.Add(new("Lineaarvõrrand – viime vabaliikme teisele poole:", k[1] == BigRational.One
+        s.Add(new(null, k[1] == BigRational.One
             ? $"{Pol(k, muutuja)} = 0 \\iff {muutuja} = {parem}"
             : $"{Pol(k, muutuja)} = 0 \\iff {Pol([BigRational.Zero, k[1]], muutuja)} = {parem} \\iff {muutuja} = {tulemus}"));
     }
@@ -287,10 +273,10 @@ public static class VorrandiSelgitus
         if (b.IsZero)
         {
             var parem = -c / a;
-            s.Add(new("Mittetäielik ruutvõrrand (lineaarliige puudub):",
+            s.Add(new(null,
                 $"{Pol(k, muutuja)} = 0 \\iff {muutuja}^{{2}} = {N(parem)}"));
             if (Avaldised.OnNegatiivne(parem))
-                s.Add(new($"Ruut ei saa olla negatiivne, seega lahendid puuduvad."));
+                s.Add(new("Ruut ei saa olla negatiivne – lahendid puuduvad."));
             else
             {
                 var juur = Arv.Latex(Math.Sqrt(Avaldised.Kahendarv(parem)));
@@ -301,18 +287,18 @@ public static class VorrandiSelgitus
         }
 
         var d = b * b - Arv4 * a * c;
-        s.Add(new($"Ruutvõrrand kujul $a{muutuja}^{{2}} + b{muutuja} + c = 0$, kus $a = {N(a)}$, $b = {N(b)}$, $c = {N(c)}$. Diskriminant:",
+        s.Add(new($"$a = {N(a)},\\ b = {N(b)},\\ c = {N(c)}$:",
             $"D = b^{{2}} - 4ac = {NS(b)}^{{2}} - 4 \\cdot {NS(a)} \\cdot {NS(c)} = {N(d)}"));
 
         if (Avaldised.OnNegatiivne(d))
         {
-            s.Add(new("$D < 0$, seega reaalarvulised lahendid puuduvad."));
+            s.Add(new("$D < 0$ – lahendid puuduvad."));
             return;
         }
         if (d.IsZero)
         {
             var x0 = -b / (Arv2 * a);
-            s.Add(new("$D = 0$, seega on üks (kahekordne) lahend:",
+            s.Add(new("$D = 0$:",
                 $"{muutuja} = -\\frac{{b}}{{2a}} = -\\frac{{{N(b)}}}{{{N(Arv2 * a)}}} = {N(x0)}"));
             return;
         }
@@ -320,7 +306,7 @@ public static class VorrandiSelgitus
         var sqrtD = Math.Sqrt(Avaldised.Kahendarv(d));
         var (ad, bd) = (Avaldised.Kahendarv(a), Avaldised.Kahendarv(b));
         var lahendid = new[] { (-bd - sqrtD) / (2 * ad), (-bd + sqrtD) / (2 * ad) }.Order().ToList();
-        s.Add(new("$D > 0$, seega on kaks lahendit:",
+        s.Add(new("$D > 0$:",
             $"{muutuja}_{{1,2}} = \\frac{{-b \\pm \\sqrt{{D}}}}{{2a}} = \\frac{{{N(-b)} \\pm \\sqrt{{{N(d)}}}}}{{{N(Arv2 * a)}}}"));
         s.Add(new(null, Loend(lahendid.Select(Arv.Silu).ToList(), muutuja)));
     }
@@ -328,7 +314,7 @@ public static class VorrandiSelgitus
     private static void Bikvadraat(BigRational[] k, List<Samm> s, string muutuja)
     {
         var t = new[] { k[0], k[2], k[4] };
-        s.Add(new($"Bikvadraatvõrrand – asendame $t = {muutuja}^{{2}}$ (kus $t \\geq 0$):", $"{Pol(t, "t")} = 0"));
+        s.Add(new($"Asendus $t = {muutuja}^{{2}} \\geq 0$:", $"{Pol(t, "t")} = 0"));
         Ruut(t, s, "t");
 
         var (c, b, a) = (Avaldised.Kahendarv(t[0]), Avaldised.Kahendarv(t[1]), Avaldised.Kahendarv(t[2]));
@@ -338,7 +324,7 @@ public static class VorrandiSelgitus
         foreach (var tj in tJuured.Select(Arv.Silu).Distinct())
         {
             s.Add(new(tj < 0
-                ? $"$t = {Arv.Latex(tj)} < 0$ – ruut ei saa olla negatiivne."
+                ? $"$t = {Arv.Latex(tj)} < 0$ – ei sobi."
                 : $"${muutuja}^{{2}} = {Arv.Latex(tj)} \\Rightarrow {muutuja} = \\pm {Arv.Latex(Math.Sqrt(tj))}$"));
         }
     }

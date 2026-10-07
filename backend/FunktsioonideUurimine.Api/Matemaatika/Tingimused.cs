@@ -69,7 +69,7 @@ public sealed class Tingimused
 
     /// <returns>false, kui tingimus on konstantne ja ei kehti (nt 1/0).</returns>
     public bool Jagamisele(Expression nimetaja) =>
-        Lisa(nimetaja, TingimuseLiik.NullistErinev, "nulliga jagada ei saa – nimetaja ei tohi olla null");
+        Lisa(nimetaja, TingimuseLiik.NullistErinev, "nimetaja ≠ 0");
 
     public bool Astmele(Expression alus, Expression astendaja)
     {
@@ -77,32 +77,32 @@ public sealed class Tingimused
         {
             if (Avaldised.OnTaisarv(q))
                 return !Avaldised.OnNegatiivne(q) || Lisa(alus, TingimuseLiik.NullistErinev,
-                    "negatiivne astendaja tähendab jagamist – nimetaja ei tohi olla null");
+                    "nimetaja ≠ 0");
             if (q.Denominator.IsEven)
                 return Avaldised.OnNegatiivne(q)
-                    ? Lisa(alus, TingimuseLiik.Positiivne, "paarisjuur on nimetajas – juuritav peab olema positiivne")
-                    : Lisa(alus, TingimuseLiik.MitteNegatiivne, "paarisjuurt saab võtta ainult mittenegatiivsest arvust");
+                    ? Lisa(alus, TingimuseLiik.Positiivne, "juur nimetajas – juuritav > 0")
+                    : Lisa(alus, TingimuseLiik.MitteNegatiivne, "paarisjuure alune ≥ 0");
             // paaritu juur on defineeritud kõigil reaalarvudel
             return !Avaldised.OnNegatiivne(q) || Lisa(alus, TingimuseLiik.NullistErinev,
-                "juur on nimetajas – nimetaja ei tohi olla null");
+                "nimetaja ≠ 0");
         }
         // muutuv või irratsionaalne astendaja (x^x, 2^x, x^π): alus peab olema positiivne
-        return Lisa(alus, TingimuseLiik.Positiivne, "muutuva või irratsionaalse astendajaga astme alus peab olema positiivne");
+        return Lisa(alus, TingimuseLiik.Positiivne, "muutuva astendajaga astme alus > 0");
     }
 
     public bool Funktsioonile(Function f, Expression argument)
     {
         if (f.IsLn || f.IsLg)
-            return Lisa(argument, TingimuseLiik.Positiivne, "logaritmida saab ainult positiivset arvu");
+            return Lisa(argument, TingimuseLiik.Positiivne, "logaritmitav > 0");
         if (f.IsTan || f.IsSec)
             return Lisa(Operators.cos(argument), TingimuseLiik.NullistErinev,
-                f.IsTan ? "tan u = sin u / cos u – koosinus ei tohi olla null" : "sec u = 1 / cos u – koosinus ei tohi olla null");
+                f.IsTan ? "tan u = sin u / cos u ⇒ cos u ≠ 0" : "sec u = 1 / cos u ⇒ cos u ≠ 0");
         if (f.IsCot || f.IsCsc)
             return Lisa(Operators.sin(argument), TingimuseLiik.NullistErinev,
-                f.IsCot ? "cot u = cos u / sin u – siinus ei tohi olla null" : "csc u = 1 / sin u – siinus ei tohi olla null");
+                f.IsCot ? "cot u = cos u / sin u ⇒ sin u ≠ 0" : "csc u = 1 / sin u ⇒ sin u ≠ 0");
         if (f.IsAsin || f.IsAcos)
             return Lisa(Operators.subtract(Expression.One, Operators.pow(argument, Avaldised.Taisarv(2))),
-                TingimuseLiik.MitteNegatiivne, "arcsin ja arccos argument peab olema lõigus [-1; 1], st 1 - u² ≥ 0");
+                TingimuseLiik.MitteNegatiivne, "arcsin/arccos: -1 ≤ u ≤ 1 ⇒ 1 - u² ≥ 0");
         return true;
     }
 

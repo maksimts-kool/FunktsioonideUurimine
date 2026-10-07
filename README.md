@@ -7,7 +7,7 @@ EF Core abil andmebaasi ja joonestab funktsiooni ning selle tuletise graafiku.
 - **Valemid on suvalised** – y-väärtused ja tuletised arvutab server tekstilise valemi põhjal (boonusülesanne).
 - **Tulemused on täpsed** – polünoomide ja ratsionaalfunktsioonide nullkohad leitakse kogu arvteljel ning kuvatakse
   täpsel kujul: `x = -√3 ≈ -1.7321`, `max f(1) = 1/e ≈ 0.3679`, `x = 3π/2`.
-- **Lahenduskäik** – „Näita rohkem“ näitab iga vastuse leidmist samm-sammult: määramispiirkonna tingimused,
+- **Lahenduskäik** – „Näita lahenduskäiku“ näitab iga vastuse leidmist samm-sammult: määramispiirkonna tingimused,
   lahendatud võrrandid (tegurdamine, diskriminant, Horneri skeem), diferentseerimisreeglid ja märgitabelid
   (`POST /api/lahenduskaik`).
 - **Teooria** – käsiraamatu stiilis leht (`/teooria`) funktsiooni uurimise, tuletiste tabeli ja uurimise skeemiga.

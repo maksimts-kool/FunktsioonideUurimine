@@ -16,25 +16,25 @@ public static class TuletiseSelgitus
     {
         var sammud = new List<Samm>
         {
-            new($"Diferentseerime funktsiooni ${nimi}(x)$:", $"{nimi}(x) = {L(f)}")
+            new(null, $"{nimi}(x) = {L(f)}")
         };
         var tulemus = Avaldised.Tuletis(f);
 
         if (!Avaldised.SisaldabX(f))
         {
-            sammud.Add(new("Konstandi tuletis on null.", $"{tuletiseNimi}(x) = 0"));
+            sammud.Add(new("Konstandi tuletis:", $"{tuletiseNimi}(x) = 0"));
             return sammud;
         }
 
         var asendatud = Seleta(f, sammud);
         if (asendatud is not null && asendatud != L(tulemus))
         {
-            sammud.Add(new("Paneme osad kokku:", $"{tuletiseNimi}(x) = {asendatud}"));
-            sammud.Add(new("Lihtsustame:", $"{tuletiseNimi}(x) = {L(tulemus)}"));
+            sammud.Add(new(null, $"{tuletiseNimi}(x) = {asendatud}"));
+            sammud.Add(new("Lihtsustatult:", $"{tuletiseNimi}(x) = {L(tulemus)}"));
         }
         else
         {
-            sammud.Add(new("**Seega:**", $"{tuletiseNimi}(x) = {L(tulemus)}"));
+            sammud.Add(new(null, $"{tuletiseNimi}(x) = {L(tulemus)}"));
         }
         return sammud;
     }
@@ -47,7 +47,7 @@ public static class TuletiseSelgitus
             case Expression.Sum summa:
             {
                 var liikmed = ValemiVormindaja.Jarjesta(summa.Item);
-                sammud.Add(Reegel("Summa tuletis on liidetavate tuletiste summa", "(u \\pm v)' = u' \\pm v'"));
+                sammud.Add(Reegel("Summa", "(u \\pm v)' = u' \\pm v'"));
                 var tuletised = new List<string>();
                 foreach (var liige in liikmed)
                 {
@@ -81,14 +81,14 @@ public static class TuletiseSelgitus
         var c = Korruta(konstandid);
         var cLatex = konstandid.Count == 0 ? "" : KordajaLatex(c);
         if (konstandid.Count > 0)
-            sammud.Add(Reegel("Konstantse teguri võib tuua tuletise märgi ette", "(c \\cdot u)' = c \\cdot u'"));
+            sammud.Add(Reegel("Konstantne tegur", "(c \\cdot u)' = c \\cdot u'"));
 
         string? sisemine;
         if (nimetaja.Count > 0 && (lugeja.Count > 0 || konstandid.Count == 0))
         {
             var u = Korruta(lugeja);
             var v = Korruta(nimetaja);
-            sammud.Add(Reegel("Jagatise tuletis", "\\left(\\frac{u}{v}\\right)' = \\frac{u' v - u v'}{v^{2}}"));
+            sammud.Add(Reegel("Jagatis", "\\left(\\frac{u}{v}\\right)' = \\frac{u' v - u v'}{v^{2}}"));
             sammud.AddRange(Osad(("u", u), ("v", v)));
             sisemine = $"\\frac{{{S(L(Avaldised.Tuletis(u)))} \\cdot {S(L(v))} - {S(L(u))} \\cdot {S(L(Avaldised.Tuletis(v)))}}}{{{Alus(L(v))}^{{2}}}}";
         }
@@ -97,7 +97,7 @@ public static class TuletiseSelgitus
             var koik = tegurid.Where(Avaldised.SisaldabX).ToList();
             var u = koik[0];
             var v = Korruta(koik.Skip(1));
-            sammud.Add(Reegel("Korrutise tuletis", "(u \\cdot v)' = u' v + u v'"));
+            sammud.Add(Reegel("Korrutis", "(u \\cdot v)' = u' v + u v'"));
             sammud.AddRange(Osad(("u", u), ("v", v)));
             sisemine = $"{S(L(Avaldised.Tuletis(u)))} \\cdot {S(L(v))} + {S(L(u))} \\cdot {S(L(Avaldised.Tuletis(v)))}";
         }
@@ -124,7 +124,7 @@ public static class TuletiseSelgitus
         if (sisemine is null || sisemine is Expression.Identifier) return null;
 
         var du = Avaldised.Tuletis(sisemine);
-        sammud.Add(new($"Sisemine funktsioon $u = {L(sisemine)}$, selle tuletis:", $"u' = {L(du)}"));
+        sammud.Add(new(null, $"u = {L(sisemine)}, \\quad u' = {L(du)}"));
         var valimine = f switch
         {
             Expression.Function fn => FunktsiooniTuletis(fn.Item1, L(sisemine)),

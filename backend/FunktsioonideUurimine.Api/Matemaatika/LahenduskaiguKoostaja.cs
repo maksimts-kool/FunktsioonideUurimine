@@ -53,49 +53,32 @@ public static class LahenduskaiguKoostaja
         var s = new List<Samm>();
         if (v.Tingimused.Count == 0)
         {
-            s.Add(new("Valemis ei ole muutujaga nimetajat, paarisjuurt, logaritmi ega muud piirangut – " +
-                      "avaldise väärtuse saab arvutada iga reaalarvu $x$ korral."));
-            s.Add(new(null, "X = \\mathbb{R} = (-\\infty;\\ \\infty)"));
+            s.Add(new("Piiranguid pole (nimetaja, paarisjuur, logaritm puuduvad):", "X = \\mathbb{R}"));
         }
         else
         {
-            s.Add(new("Määramispiirkond on kõigi nende $x$ väärtuste hulk, mille korral valem on arvutatav. " +
-                      "Kirjutame välja tingimused:"));
             foreach (var tingimus in v.Tingimused)
             {
                 var (hulk, _) = Piirkonnad.Maaramispiirkond([tingimus], v.A, v.B);
-                var juured = Matemaatika.Nullkohad.Leia(tingimus.Avaldis, v.A, v.B);
-                var tekst = Suurtaht(tingimus.Pohjus) + ".";
-                if (juured.Vaartused.Count > 0)
-                    tekst += $" Avaldis ${L(tingimus.Avaldis)}$ on null kohal ${VorrandiSelgitus.Loend(juured.Vaartused)}$" +
-                             (tingimus.Liik == TingimuseLiik.NullistErinev
-                                 ? "."
-                                 : "; need punktid jagavad arvtelje vahemikeks, millest valime sobiva märgiga.");
-                s.Add(new(tekst, $"{L(tingimus.Avaldis)} {Vordlus(tingimus.Liik)} 0 \\;\\Rightarrow\\; x \\in {HulkLatex(hulk)}"));
+                s.Add(new($"{Suurtaht(tingimus.Pohjus)}:",
+                    $"{L(tingimus.Avaldis)} {Vordlus(tingimus.Liik)} 0 \\;\\Rightarrow\\; x \\in{HulkLatex(hulk)}"));
             }
-            if (v.Tingimused.Count > 1)
-                s.Add(new("Määramispiirkond on kõigi tingimuste ühisosa:"));
-            s.Add(new(null, $"X = {HulkLatex(t.PiirkondF)}"));
+            s.Add(new(v.Tingimused.Count > 1 ? "Ühisosa:" : null, $"X = {HulkLatex(t.PiirkondF)}"));
         }
         if (!v.DTaielik)
-            s.Add(new($"Tingimuste võrrandeid ei saanud algebraliselt lahendada, seepärast on määramispiirkond leitud " +
-                      $"ainult lõigul {Loik(v.A, v.B)}."));
+            s.Add(new($"Leitud numbriliselt lõigul {Loik(v.A, v.B)}."));
         return new("maaramispiirkond", "Määramispiirkond", s, [t.Maaramispiirkond], !v.DTaielik);
     }
 
     private static LahenduseOsa Nullkohad(AnaluusiTulemus t, Vahetulemused v)
     {
-        var s = new List<Samm>
-        {
-            new("Nullkoht on argumendi väärtus, mille korral funktsiooni väärtus on null. Lahendame võrrandi $f(x) = 0$:")
-        };
-        s.AddRange(VorrandiSelgitus.Sammud(v.Funktsioon, "f(x)", v.J0, v.A, v.B));
+        var s = VorrandiSelgitus.Sammud(v.Funktsioon, "f(x)", v.J0, v.A, v.B);
         var valjas = v.J0.Vaartused.Where(x => !t.PiirkondF.Sisaldab(x)).ToList();
         if (valjas.Count > 0)
-            s.Add(new($"Määramispiirkonda ei kuulu ${VorrandiSelgitus.Loend(valjas)}$ – see ei ole nullkoht."));
+            s.Add(new($"${VorrandiSelgitus.Loend(valjas)} \\notin X$ – ei sobi."));
         var sobivad = v.J0.Vaartused.Where(t.PiirkondF.Sisaldab).Where(Arv.OnTapne).Take(3).ToList();
         if (sobivad.Count > 0 && !v.J0.KoikPunktid)
-            s.Add(new("**Kontroll:**", string.Join(", \\quad ", sobivad.Select(x => $"f({Arv.Latex(x)}) = 0"))));
+            s.Add(new("Kontroll:", string.Join(", \\quad ", sobivad.Select(x => Vaartus(v.Funktsioon, x, 0)))));
         return new("nullkohad", "Nullkohad", s, [t.Nullkohad], !v.NullTaielik);
     }
 
@@ -103,95 +86,66 @@ public static class LahenduskaiguKoostaja
     {
         var s = new List<Samm>
         {
-            new("Pidev funktsioon saab märki muuta ainult nullkohtades ja määramispiirkonna katkemiskohtades. " +
-                "Need punktid jagavad määramispiirkonna vahemikeks, kus märk on muutumatu – piisab ühe " +
-                "**testpunkti** kontrollimisest igas vahemikus (intervallmeetod):"),
-            new(null, null, Tabel(t.F, "f", v.PositiivsusPiirkond, v.J0.Vaartused, null,
-                mark => null, _ => null, LoikePiirid(v, v.NullTaielik))),
-            new("Positiivsuspiirkond $X^{+}$ koosneb vahemikest, kus $f(x) > 0$, negatiivsuspiirkond $X^{-}$ – " +
-                "vahemikest, kus $f(x) < 0$."),
+            new("Märgitabel (testpunkt igas vahemikus):", null, Tabel(t.F, "f", v.PositiivsusPiirkond, v.J0.Vaartused,
+                null, mark => null, _ => null, LoikePiirid(v, v.NullTaielik))),
         };
         return new("positiivsus", "Positiivsus- ja negatiivsuspiirkond", s, [t.Positiivsus], !v.NullTaielik);
     }
 
     private static LahenduseOsa Kriitilised(AnaluusiTulemus t, Vahetulemused v)
     {
-        var s = new List<Samm>
-        {
-            new("Kriitilised punktid on määramispiirkonna sisepunktid, kus $f'(x) = 0$ (statsionaarsed punktid) " +
-                "või kus tuletist ei eksisteeri. Lahendame võrrandi $f'(x) = 0$:", $"f'(x) = {L(v.Tuletis)}")
-        };
-        s.AddRange(VorrandiSelgitus.Sammud(v.Tuletis, "f'(x)", v.J1, v.A, v.B));
+        var s = VorrandiSelgitus.Sammud(v.Tuletis, "f'(x)", v.J1, v.A, v.B);
 
         var valjas = v.J1.Vaartused.Where(x => !v.Statsionaarsed.Contains(x)).ToList();
         if (valjas.Count > 0)
-            s.Add(new($"${VorrandiSelgitus.Loend(valjas)}$ ei ole määramispiirkonna sisepunkt – jätame välja."));
+            s.Add(new($"${VorrandiSelgitus.Loend(valjas)}$ ei ole $X$ sisepunkt – ei sobi."));
         if (v.TuletisPuudub.Count > 0)
-            s.Add(new("Tuletis ei ole määratud, kuigi funktsioon on – ka need on kriitilised punktid:",
-                VorrandiSelgitus.Loend(v.TuletisPuudub)));
-        if (v.Kriitilised.Count > 0)
-            s.Add(new("**Kriitilised punktid:**", VorrandiSelgitus.Loend(v.Kriitilised)));
+            s.Add(new("$f'$ ei ole määratud (kuid $f$ on):", VorrandiSelgitus.Loend(v.TuletisPuudub)));
+        if (v.Kriitilised.Count > 0 && (valjas.Count > 0 || v.TuletisPuudub.Count > 0))
+            s.Add(new("Kriitilised punktid:", VorrandiSelgitus.Loend(v.Kriitilised)));
         return new("kriitilisedPunktid", "Kriitilised punktid", s, [t.KriitilisedPunktid], !v.TuletisTaielik);
     }
 
     private static LahenduseOsa Monotoonsus(AnaluusiTulemus t, Vahetulemused v)
     {
-        var s = new List<Samm>
-        {
-            new("Kui vahemikus $f'(x) > 0$, siis funktsioon **kasvab** ($\\nearrow$); kui $f'(x) < 0$, siis " +
-                "**kahaneb** ($\\searrow$). Kriitilised punktid jagavad määramispiirkonna vahemikeks; igas " +
-                "vahemikus määrame tuletise märgi testpunkti abil:")
-        };
         var tabel = Tabel(t.F1, "f'", v.MonotoonsusPiirkond, v.MonotoonsusMurdepunktid, "f(x)",
             mark => mark switch { "+" => "\\nearrow", "−" => "\\searrow", "0" => "\\rightarrow", _ => null },
             x => t.EkstreemumPunktid.FirstOrDefault(e => Math.Abs(e.X - x) <= Hulk.Tolerants) is { } e
                 ? $"\\text{{{e.Tyyp}}}"
                 : null, LoikePiirid(v, v.TuletisTaielik));
-        s.Add(new(null, null, tabel));
+        var s = new List<Samm> { new("$f'$ märgid ($+ \\Rightarrow \\nearrow$, $- \\Rightarrow \\searrow$):", null, tabel) };
         if (OnYhendatud(tabel))
-            s.Add(new("Kõrvuti olevad sama märgiga vahemikud ühendame: tuletis ei muuda nende vahel märki, " +
-                      "seega funktsioon kasvab (või kahaneb) ka üle selle punkti."));
+            s.Add(new("Sama märgiga naabervahemikud ühendatakse ($f'$ märk ei muutu)."));
 
-        s.Add(new("**Ekstreemumi piisav tingimus:** kui $f'$ muudab kriitilises punktis märki $+ \\to -$, on seal " +
-                  "maksimum; kui $- \\to +$, siis miinimum. Kui märk ei muutu, ekstreemumit ei ole."));
         foreach (var c in v.Kriitilised)
         {
             var e = t.EkstreemumPunktid.FirstOrDefault(p => Math.Abs(p.X - c) <= Hulk.Tolerants);
-            if (e is null)
-                s.Add(new($"Punktis $x = {Arv.Latex(c)}$ tuletis märki ei muuda – ekstreemumit ei ole."));
-            else
-                s.Add(new(e.Tyyp == "max" ? "Maksimumpunkt, funktsiooni väärtus:" : "Miinimumpunkt, funktsiooni väärtus:",
-                    $"y_{{\\text{{{e.Tyyp}}}}} = {Vaartus(v.Funktsioon, c, e.Y)}"));
+            s.Add(e is null
+                ? new($"$x = {Arv.Latex(c)}$: $f'$ märk ei muutu – ekstreemumit pole.")
+                : new(e.Tyyp == "max" ? "$+ \\to -$:" : "$- \\to +$:", $"y_{{\\text{{{e.Tyyp}}}}} = {Vaartus(v.Funktsioon, c, e.Y)}"));
         }
         return new("monotoonsus", "Monotoonsus ja ekstreemumid", s, [t.Monotoonsus, t.Ekstreemumid], !v.TuletisTaielik);
     }
 
     private static LahenduseOsa Kaanupunktid(AnaluusiTulemus t, Vahetulemused v)
     {
-        var s = new List<Samm>
-        {
-            new("Teise tuletise märk näitab graafiku kõverust: kui $f''(x) > 0$, on graafik **nõgus** ($\\cup$), " +
-                "kui $f''(x) < 0$, siis **kumer** ($\\cap$). Käänupunktis muutub kõverus, st $f''$ muudab märki. " +
-                "Lahendame võrrandi $f''(x) = 0$:", $"f''(x) = {L(v.TeineTuletis)}")
-        };
-        s.AddRange(VorrandiSelgitus.Sammud(v.TeineTuletis, "f''(x)", v.J2, v.A, v.B));
+        var s = VorrandiSelgitus.Sammud(v.TeineTuletis, "f''(x)", v.J2, v.A, v.B);
         var puudub = v.Kaanukandidaadid.Where(k => !v.J2.Vaartused.Any(j => Math.Abs(j - k) <= Hulk.Tolerants)).ToList();
         if (puudub.Count > 0)
-            s.Add(new("Lisaks on kandidaadid punktid, kus $f''$ ei ole määratud:", VorrandiSelgitus.Loend(puudub)));
+            s.Add(new("$f''$ ei ole määratud:", VorrandiSelgitus.Loend(puudub)));
 
         var tabel = Tabel(t.F2, "f''", v.KumerusPiirkond, v.KumerusMurdepunktid, "f(x)",
             mark => mark switch { "+" => "\\cup", "−" => "\\cap", "0" => "—", _ => null },
             x => t.KaanupunktiPunktid.Any(k => Math.Abs(k.X - x) <= Hulk.Tolerants) ? "\\text{K}" : null,
             LoikePiirid(v, v.TeineTaielik));
-        s.Add(new("Määrame teise tuletise märgi vahemikes:", null, tabel));
+        s.Add(new("$f''$ märgid ($+ \\Rightarrow \\cup$ nõgus, $- \\Rightarrow \\cap$ kumer):", null, tabel));
 
         foreach (var k in v.Kaanukandidaadid)
         {
             var kp = t.KaanupunktiPunktid.FirstOrDefault(p => Math.Abs(p.X - k) <= Hulk.Tolerants);
-            if (kp is null)
-                s.Add(new($"Punktis $x = {Arv.Latex(k)}$ teine tuletis märki ei muuda – käänupunkti ei ole."));
-            else
-                s.Add(new("Käänupunkt, funktsiooni väärtus:", Vaartus(v.Funktsioon, k, kp.Y)));
+            s.Add(kp is null
+                ? new($"$x = {Arv.Latex(k)}$: $f''$ märk ei muutu – käänupunkti pole.")
+                : new("Käänupunkt:", $"y_{{K}} = {Vaartus(v.Funktsioon, k, kp.Y)}"));
         }
         return new("kaanupunktid", "Käänupunktid, kumerus ja nõgusus", s, [t.Kaanupunktid, t.Kumerus], !v.TeineTaielik);
     }

@@ -2,50 +2,76 @@ import {
   ActionIcon,
   Anchor,
   AppShell,
+  Badge,
+  Box,
   Burger,
   Button,
   Group,
   Loader,
   NavLink,
   ScrollArea,
+  Tabs,
   Text,
-  TextInput,
   Title,
   Tooltip,
   useComputedColorScheme,
   useMantineColorScheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { IconBook2, IconMathFunction, IconMoon, IconPlus, IconSearch, IconSun } from '@tabler/icons-react'
-import { useState } from 'react'
-import { Link, Outlet, useLocation, useMatch } from 'react-router'
+import {
+  IconBook2,
+  IconDeviceFloppy,
+  IconHome,
+  IconMathFunction,
+  IconMoon,
+  IconPlus,
+  IconSun,
+  type Icon,
+} from '@tabler/icons-react'
+import { Link, Outlet, useLocation, useMatch, useNavigate } from 'react-router'
 import { useFunktsioonid } from '../api/paringud'
 import { Valem } from '../komponendid/Valem'
+import { TeooriaSisukord } from './Teooria'
 import { kuupaev } from './vorming'
 
-function Funktsioonid({ sulge }: { sulge: () => void }) {
+type Vaade = 'avaleht' | 'lahendaja' | 'teooria' | 'salvestatud'
+
+const SAKID: { vaade: Vaade; tee: string; nimi: string; ikoon: Icon }[] = [
+  { vaade: 'avaleht', tee: '/', nimi: 'Avaleht', ikoon: IconHome },
+  { vaade: 'lahendaja', tee: '/uus', nimi: 'Lahendaja', ikoon: IconMathFunction },
+  { vaade: 'teooria', tee: '/teooria', nimi: 'Teooria', ikoon: IconBook2 },
+  { vaade: 'salvestatud', tee: '/funktsioonid', nimi: 'Salvestatud', ikoon: IconDeviceFloppy },
+]
+
+/** Milline sakk on aktiivne; funktsiooni vaatamine ja muutmine kuuluvad lahendaja alla. */
+function vaadeTeest(tee: string): Vaade | null {
+  if (tee === '/') return 'avaleht'
+  if (tee === '/uus' || tee.startsWith('/funktsioon/')) return 'lahendaja'
+  if (tee === '/teooria') return 'teooria'
+  if (tee === '/funktsioonid') return 'salvestatud'
+  return null
+}
+
+/** Nii mitu viimati loodud/muudetud funktsiooni näidatakse lahendaja külgribas. */
+const VIIMASEID = 8
+
+/** Lahendaja külgriba: viimased funktsioonid; kõik on saki „Salvestatud“ all. */
+function ViimasedFunktsioonid({ sulge }: { sulge: () => void }) {
   const { data, isLoading, isError } = useFunktsioonid()
-  const [otsing, setOtsing] = useState('')
   const aktiivne = useMatch('/funktsioon/:id/*')?.params.id
 
-  const nahtavad = (data ?? []).filter((f) => f.valem.toLowerCase().includes(otsing.trim().toLowerCase()))
+  const viimased = [...(data ?? [])]
+    .sort((a, b) => (b.muudetudAeg ?? b.luodudAeg).localeCompare(a.muudetudAeg ?? a.luodudAeg))
+    .slice(0, VIIMASEID)
 
   return (
     <>
-      <TextInput
-        placeholder="Otsi valemit…"
-        leftSection={<IconSearch size={16} />}
-        value={otsing}
-        onChange={(e) => setOtsing(e.currentTarget.value)}
-        mb="xs"
-      />
+      <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb="xs" px={4}>Viimased funktsioonid</Text>
       <ScrollArea style={{ flex: 1 }} type="auto" offsetScrollbars>
         {isLoading && <Loader size="sm" m="md" />}
         {isError && <Text c="red" size="sm">Funktsioone ei õnnestunud laadida.</Text>}
-        {data && nahtavad.length === 0 && (
-          <Text c="dimmed" size="sm" p="xs">{otsing ? 'Ühtegi valemit ei leitud.' : 'Salvestatud funktsioone pole.'}</Text>
-        )}
-        {nahtavad.map((f) => (
+        {data && viimased.length === 0 && <Text c="dimmed" size="sm" p="xs">Salvestatud funktsioone pole.</Text>}
+        {viimased.map((f) => (
           <NavLink
             key={f.id}
             component={Link}
@@ -59,7 +85,18 @@ function Funktsioonid({ sulge }: { sulge: () => void }) {
           />
         ))}
       </ScrollArea>
-      <Text size="xs" c="dimmed" pt="xs">{data ? `${data.length} funktsiooni` : ''}</Text>
+      <Button
+        component={Link}
+        to="/funktsioonid"
+        onClick={sulge}
+        variant="light"
+        mt="xs"
+        fullWidth
+        leftSection={<IconDeviceFloppy size={18} />}
+        rightSection={data ? <Badge size="sm" variant="filled" circle={data.length < 10}>{data.length}</Badge> : null}
+      >
+        Kõik salvestatud
+      </Button>
     </>
   )
 }
@@ -68,65 +105,82 @@ export function Paigutus() {
   const [avatud, { toggle, close }] = useDisclosure()
   const { setColorScheme } = useMantineColorScheme()
   const tume = useComputedColorScheme('light') === 'dark'
-  const asukoht = useLocation()
+  const navigeeri = useNavigate()
+  const vaade = vaadeTeest(useLocation().pathname)
+
+  // külgriba: lahendajas salvestatud funktsioonid, teoorias sisukord; avalehel ja nimekirjas pole vaja
+  const kylgriba =
+    vaade === 'lahendaja' ? (
+      <>
+        <Button component={Link} to="/uus" onClick={close} leftSection={<IconPlus size={18} />} mb="sm" fullWidth>
+          Uus funktsioon
+        </Button>
+        <ViimasedFunktsioonid sulge={close} />
+      </>
+    ) : vaade === 'teooria' ? (
+      <>
+        <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb="xs" px={4}>Sisukord</Text>
+        <ScrollArea style={{ flex: 1 }} type="auto">
+          <TeooriaSisukord onValik={close} />
+        </ScrollArea>
+      </>
+    ) : null
 
   return (
     <AppShell
       header={{ height: 60 }}
-      navbar={{ width: 300, breakpoint: 'sm', collapsed: { mobile: !avatud } }}
+      navbar={kylgriba ? { width: 300, breakpoint: 'sm', collapsed: { mobile: !avatud } } : undefined}
       padding="md"
     >
       <AppShell.Header>
-        <Group h="100%" px="md" justify="space-between" wrap="nowrap">
+        <Group h="100%" px="md" justify="space-between" wrap="nowrap" gap="xs">
           <Group gap="sm" wrap="nowrap">
-            <Burger opened={avatud} onClick={toggle} hiddenFrom="sm" size="sm" aria-label="Menüü" />
+            {kylgriba && <Burger opened={avatud} onClick={toggle} hiddenFrom="sm" size="sm" aria-label="Külgriba" />}
             <Anchor component={Link} to="/" underline="never" c="inherit">
               <Group gap={8} wrap="nowrap">
                 <IconMathFunction size={28} color="var(--mantine-color-indigo-6)" />
-                <Title order={4} visibleFrom="xs">Funktsioonide uurimine</Title>
+                <Title order={4} visibleFrom="lg">Funktsioonide uurimine</Title>
               </Group>
             </Anchor>
           </Group>
-          <Group gap="xs" wrap="nowrap">
-            <Button
-              component={Link}
-              to="/teooria"
-              leftSection={<IconBook2 size={18} />}
-              variant={asukoht.pathname === '/teooria' ? 'light' : 'subtle'}
-              visibleFrom="sm"
+
+          <Tabs
+            value={vaade}
+            onChange={(v) => {
+              const sakk = SAKID.find((s) => s.vaade === v)
+              if (sakk) navigeeri(sakk.tee)
+              close()
+            }}
+            h="100%"
+            styles={{ list: { height: '100%', flexWrap: 'nowrap', '--tab-border-color': 'transparent' }, tab: { height: '100%' } }}
+          >
+            <Tabs.List>
+              {SAKID.map(({ vaade: v, nimi, ikoon: Ikoon }) => (
+                <Tabs.Tab key={v} value={v} leftSection={<Ikoon size={18} />} aria-label={nimi} px={{ base: 'xs', sm: 'md' }}>
+                  <Box component="span" visibleFrom="sm">{nimi}</Box>
+                </Tabs.Tab>
+              ))}
+            </Tabs.List>
+          </Tabs>
+
+          <Tooltip label={tume ? 'Hele teema' : 'Tume teema'}>
+            <ActionIcon
+              variant="default"
+              size="lg"
+              aria-label="Vaheta teemat"
+              onClick={() => setColorScheme(tume ? 'light' : 'dark')}
             >
-              Teooria
-            </Button>
-            <Tooltip label="Teooria">
-              <ActionIcon component={Link} to="/teooria" variant="subtle" size="lg" aria-label="Teooria" hiddenFrom="sm">
-                <IconBook2 size={20} />
-              </ActionIcon>
-            </Tooltip>
-            <Button
-              component={Link}
-              to="/uus"
-              leftSection={<IconPlus size={18} />}
-              variant={asukoht.pathname === '/uus' ? 'light' : 'filled'}
-            >
-              Uus funktsioon
-            </Button>
-            <Tooltip label={tume ? 'Hele teema' : 'Tume teema'}>
-              <ActionIcon
-                variant="default"
-                size="lg"
-                aria-label="Vaheta teemat"
-                onClick={() => setColorScheme(tume ? 'light' : 'dark')}
-              >
-                {tume ? <IconSun size={18} /> : <IconMoon size={18} />}
-              </ActionIcon>
-            </Tooltip>
-          </Group>
+              {tume ? <IconSun size={18} /> : <IconMoon size={18} />}
+            </ActionIcon>
+          </Tooltip>
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p="sm" style={{ display: 'flex', flexDirection: 'column' }}>
-        <Funktsioonid sulge={close} />
-      </AppShell.Navbar>
+      {kylgriba && (
+        <AppShell.Navbar p="sm" style={{ display: 'flex', flexDirection: 'column' }}>
+          {kylgriba}
+        </AppShell.Navbar>
+      )}
 
       <AppShell.Main>
         <Outlet />

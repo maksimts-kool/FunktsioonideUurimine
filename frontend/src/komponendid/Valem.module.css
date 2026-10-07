@@ -1,0 +1,4 @@
+/* KaTeX lisab display-valemile 1em ülemise ja alumise veerise – lahenduskäigus on see liiga hõre */
+.blokk :global(.katex-display) {
+  margin: 0.3em 0;
+}

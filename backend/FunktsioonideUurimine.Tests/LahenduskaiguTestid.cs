@@ -58,8 +58,8 @@ public class LahenduskaiguTestid
     {
         var x = Kaik("sqrt(4 - x^2)/(x - 1)").Single(o => o.Voti == "maaramispiirkond");
 
-        Assert.Contains(x.Sammud, s => s.Tekst?.StartsWith("Paarisjuurt saab võtta") == true);
-        Assert.Contains(x.Sammud, s => s.Tekst?.StartsWith("Nulliga jagada ei saa") == true);
+        Assert.Contains(x.Sammud, s => s.Tekst?.StartsWith("Paarisjuure alune") == true);
+        Assert.Contains(x.Sammud, s => s.Tekst?.StartsWith("Nimetaja") == true);
         Assert.Equal(@"X = [-2;\ 1) \cup (1;\ 2]", Valemid(x)[^1]);
     }
 

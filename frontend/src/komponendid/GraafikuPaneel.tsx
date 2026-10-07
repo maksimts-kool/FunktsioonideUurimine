@@ -9,7 +9,7 @@ interface Props {
   valem: string
   algus: number
   lopp: number
-  /** Kas joonestada ka tuletised ja käänupunktid (kasutaja valis „Näita rohkem“). */
+  /** Kas joonestada ka tuletised ja käänupunktid (kasutaja avas lahenduskäigu). */
   koikDetailid?: boolean
 }
 

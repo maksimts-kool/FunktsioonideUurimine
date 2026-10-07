@@ -1,6 +1,7 @@
 import { Box, type BoxProps } from '@mantine/core'
 import katex from 'katex'
 import { Fragment, useMemo } from 'react'
+import klassid from './Valem.module.css'
 
 interface ValemProps extends BoxProps {
   /** LaTeX, mille genereerib backend (MathNet.Symbolics + ValemiVormindaja). */
@@ -18,7 +19,14 @@ export function Valem({ latex, varuTekst, blokk = false, ...boxProps }: ValemPro
     [latex, blokk],
   )
   if (!html) return <Box component="span" ff="monospace" {...boxProps}>{varuTekst}</Box>
-  return <Box component={blokk ? 'div' : 'span'} {...boxProps} dangerouslySetInnerHTML={{ __html: html }} />
+  return (
+    <Box
+      component={blokk ? 'div' : 'span'}
+      className={blokk ? klassid.blokk : undefined}
+      {...boxProps}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  )
 }
 
 /** Tekst, milles $…$ on valem ja **…** paks kiri (lahenduskäigu ja teooria lehe sammud). */

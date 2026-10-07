@@ -16,7 +16,7 @@ export function Salvestatud() {
     .sort((a, b) => (b.muudetudAeg ?? b.luodudAeg).localeCompare(a.muudetudAeg ?? a.luodudAeg))
 
   return (
-    <Stack gap="lg" maw={1100}>
+    <Stack gap="lg" maw={1100} mx="auto">
       <Group justify="space-between" align="flex-end">
         <div>
           <Title order={2}>Salvestatud funktsioonid</Title>

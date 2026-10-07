@@ -1,5 +1,5 @@
-import { Accordion, Alert, Badge, Box, Card, Group, Paper, ScrollArea, Skeleton, Stack, Text, ThemeIcon, Tooltip } from '@mantine/core'
-import { IconAlertTriangle, IconCircleCheck, IconListNumbers } from '@tabler/icons-react'
+import { Accordion, Alert, Badge, Box, Card, Group, ScrollArea, Skeleton, Stack, Text, ThemeIcon, Tooltip } from '@mantine/core'
+import { IconAlertTriangle, IconListNumbers } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 import { useLahenduskaik } from '../api/paringud'
 import type { FunktsiooniPaering, LahenduseOsa, Samm } from '../api/tyybid'
@@ -32,17 +32,6 @@ function OsaVaade({ osa }: { osa: LahenduseOsa }) {
       {osa.sammud.map((s, i) => (
         <SammuVaade key={i} samm={s} />
       ))}
-      <Paper withBorder p="sm" radius="md" bg="var(--mantine-primary-color-light)" style={{ borderColor: 'var(--mantine-primary-color-light-hover)' }}>
-        <Group gap="xs" wrap="nowrap" align="flex-start">
-          <ThemeIcon variant="transparent" size="sm" mt={2}><IconCircleCheck size={18} /></ThemeIcon>
-          <Stack gap={2}>
-            <Text size="xs" fw={700} tt="uppercase" c="dimmed">Vastus</Text>
-            {osa.vastused.map((v) => (
-              <Text key={v} size="sm" fw={500}>{v}</Text>
-            ))}
-          </Stack>
-        </Group>
-      </Paper>
     </Stack>
   )
 }
@@ -74,10 +63,7 @@ export function Lahenduskaik({ paering }: { paering: FunktsiooniPaering }) {
     <Card withBorder radius="md" padding="md">
       <Group gap="sm" mb="md" wrap="nowrap">
         <ThemeIcon variant="light" size="lg"><IconListNumbers size={20} /></ThemeIcon>
-        <div>
-          <Text fw={600}>Lahenduskäik</Text>
-          <Text size="xs" c="dimmed">Kuidas iga vastus leiti – samm-sammult, nagu käsitsi lahendades</Text>
-        </div>
+        <Text fw={600}>Lahenduskäik</Text>
       </Group>
 
       {isLoading && (

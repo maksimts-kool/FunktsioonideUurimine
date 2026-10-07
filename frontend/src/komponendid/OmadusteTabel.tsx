@@ -59,28 +59,25 @@ interface Rida {
 interface Props {
   omadused: Omadused
   pealkiri?: string
-  /** Kas kuvada ka tuletised, käänupunktid jm ning lahenduskäigu viited (muidu ainult põhivastused). */
+  /** Kas lahenduskäik on avatud (siis on igal real ka viide „Kuidas leiti?“). */
   koikDetailid: boolean
   onKoikDetailid: (v: boolean) => void
 }
 
-/** Põhivastused on kohe näha; „Näita rohkem“ avab ülejäänud omadused ja lahenduskäigu. */
+/** Kõik vastused uurimise järjekorras; nupp „Näita lahenduskäiku“ avab samm-sammulise lahenduse. */
 export function OmadusteTabel({ omadused: o, pealkiri = 'Vastused', koikDetailid, onKoikDetailid }: Props) {
-  const pohiread: Rida[] = [
+  const read: Rida[] = [
     { voti: 'maaramispiirkond', nimi: 'Määramispiirkond', tahis: 'X', tekst: o.maaramispiirkond },
     { voti: 'nullkohad', nimi: 'Nullkohad', tahis: 'X₀', tekst: o.nullkohad },
-    { voti: 'monotoonsus', nimi: 'Ekstreemumid', tahis: 'yₑ', tekst: o.ekstreemumid },
-    { voti: 'monotoonsus', nimi: 'Kasvamis- ja kahanemisvahemikud', tahis: 'X↑, X↓', tekst: o.monotoonsus },
-  ]
-  const lisaread: Rida[] = [
     { voti: 'positiivsus', nimi: 'Positiivsus- ja negatiivsuspiirkond', tahis: 'X⁺, X⁻', tekst: o.positiivsus },
     { voti: 'tuletis', nimi: 'Tuletis', tahis: "f'(x)", tekst: o.tuletis, latex: o.tuletisLatex },
     { voti: 'kriitilisedPunktid', nimi: 'Kriitilised punktid', tahis: 'xₑ', tekst: o.kriitilisedPunktid },
+    { voti: 'monotoonsus', nimi: 'Kasvamis- ja kahanemisvahemikud', tahis: 'X↑, X↓', tekst: o.monotoonsus },
+    { voti: 'monotoonsus', nimi: 'Ekstreemumid', tahis: 'yₑ', tekst: o.ekstreemumid },
     { voti: 'teineTuletis', nimi: 'Teine tuletis', tahis: "f''(x)", tekst: o.teineTuletis, latex: o.teineTuletisLatex },
     { voti: 'kaanupunktid', nimi: 'Käänupunktid', tahis: 'K', tekst: o.kaanupunktid },
     { voti: 'kaanupunktid', nimi: 'Nõgusus (∪) ja kumerus (∩)', tahis: 'X∪, X∩', tekst: o.kumerus },
   ]
-  const read = koikDetailid ? [...pohiread, ...lisaread] : pohiread
 
   return (
     <Card withBorder radius="md" padding="md">
@@ -125,7 +122,7 @@ export function OmadusteTabel({ omadused: o, pealkiri = 'Vastused', koikDetailid
         rightSection={koikDetailid ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
         onClick={() => onKoikDetailid(!koikDetailid)}
       >
-        {koikDetailid ? 'Näita vähem' : 'Näita rohkem ja lahenduskäiku'}
+        {koikDetailid ? 'Peida lahenduskäik' : 'Näita lahenduskäiku'}
       </Button>
     </Card>
   )

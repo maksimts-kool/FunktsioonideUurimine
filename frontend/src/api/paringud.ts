@@ -35,7 +35,7 @@ export const useAnaluus = (p: FunktsiooniPaering | null) =>
     staleTime: Infinity,
   })
 
-/** Samm-sammuline lahenduskäik; laaditakse alles siis, kui kasutaja avab „Näita rohkem“. */
+/** Samm-sammuline lahenduskäik; laaditakse alles siis, kui kasutaja avab „Näita lahenduskäiku“. */
 export const useLahenduskaik = (p: FunktsiooniPaering | null) =>
   useQuery({
     queryKey: votmed.lahenduskaik(p ?? { valem: '', vahemikAlgus: 0, vahemikLopp: 0 }),
