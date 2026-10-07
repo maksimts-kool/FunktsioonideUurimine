@@ -39,7 +39,35 @@ public sealed class AnaluusiTulemus
     public required Func<double, double> F { get; init; }
     public required Func<double, double> F1 { get; init; }
     public required Func<double, double> F2 { get; init; }
+
+    /// <summary>Vahetulemused, millest koostatakse lahenduskäik.</summary>
+    public required Vahetulemused Vahe { get; init; }
 }
+
+/// <summary>Analüüsi vahetulemused samm-sammulise lahenduskäigu jaoks (LahenduskaiguKoostaja).</summary>
+public sealed record Vahetulemused(
+    Expression Funktsioon,
+    Expression Tuletis,
+    Expression TeineTuletis,
+    IReadOnlyList<Tingimus> Tingimused,
+    double A,
+    double B,
+    bool DTaielik,
+    bool NullTaielik,
+    bool TuletisTaielik,
+    bool TeineTaielik,
+    Juured J0,
+    Juured J1,
+    Juured J2,
+    IReadOnlyList<double> Statsionaarsed,
+    IReadOnlyList<double> TuletisPuudub,
+    IReadOnlyList<double> Kriitilised,
+    IReadOnlyList<double> Kaanukandidaadid,
+    Hulk PositiivsusPiirkond,
+    Hulk MonotoonsusPiirkond,
+    Hulk KumerusPiirkond,
+    IReadOnlyList<double> MonotoonsusMurdepunktid,
+    IReadOnlyList<double> KumerusMurdepunktid);
 
 public sealed record Latexid(string Valem, string Tuletis, string TeineTuletis);
 
@@ -125,8 +153,8 @@ public sealed class FunktsiooniAnaluusija
         }
 
         // monotoonsus ja positiivsus
-        var (kasvab, kahaneb) = Piirkonnad.Margid(F1, Piirkond(tuletisTaielik),
-            j1.Vaartused.Concat(D1.Otspunktid()), yhenda: true);
+        var monotoonsusMurdepunktid = j1.Vaartused.Concat(D1.Otspunktid()).ToList();
+        var (kasvab, kahaneb) = Piirkonnad.Margid(F1, Piirkond(tuletisTaielik), monotoonsusMurdepunktid, yhenda: true);
         var (positiivne, negatiivne) = Piirkonnad.Margid(F, Piirkond(nullTaielik), j0.Vaartused, yhenda: false);
 
         // teine tuletis: käänupunktid ja kumerus
@@ -143,8 +171,9 @@ public sealed class FunktsiooniAnaluusija
             if (!double.IsNaN(y) && vasak * parem < 0) kaanupunktid.Add(new Punkt(k, y));
         }
         // kumerust ei liideta üle punkti, kus f' puudub (teravik)
-        var (noges, kumer) = Piirkonnad.Margid(F2, Piirkond(teineTaielik),
-            j2.Vaartused.Concat(D2.Otspunktid()), yhenda: true, eiYhendaPunktides: D1.Otspunktid());
+        var kumerusMurdepunktid = j2.Vaartused.Concat(D2.Otspunktid()).ToList();
+        var (noges, kumer) = Piirkonnad.Margid(F2, Piirkond(teineTaielik), kumerusMurdepunktid, yhenda: true,
+            eiYhendaPunktides: D1.Otspunktid());
 
         var vahemik = $" (vahemikus [{Arv.Kumnendkuju(a)}; {Arv.Kumnendkuju(b)}])";
         string Markus(bool taielik) => taielik ? "" : vahemik;
@@ -186,7 +215,11 @@ public sealed class FunktsiooniAnaluusija
             PiirkondF2 = D2,
             F = F,
             F1 = F1,
-            F2 = F2
+            F2 = F2,
+            Vahe = new Vahetulemused(f, f1, f2, parsitud.Tingimused, a, b, dTaielik, nullTaielik, tuletisTaielik,
+                teineTaielik, j0, j1, j2, statsionaarsed, tuletisPuudub, kriitilised, kaanukandidaadid,
+                Piirkond(nullTaielik), Piirkond(tuletisTaielik), Piirkond(teineTaielik),
+                monotoonsusMurdepunktid, kumerusMurdepunktid)
         };
     }
 

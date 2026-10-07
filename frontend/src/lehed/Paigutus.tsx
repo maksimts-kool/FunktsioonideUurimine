@@ -16,7 +16,7 @@ import {
   useMantineColorScheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { IconMathFunction, IconMoon, IconPlus, IconSearch, IconSun } from '@tabler/icons-react'
+import { IconBook2, IconMathFunction, IconMoon, IconPlus, IconSearch, IconSun } from '@tabler/icons-react'
 import { useState } from 'react'
 import { Link, Outlet, useLocation, useMatch } from 'react-router'
 import { useFunktsioonid } from '../api/paringud'
@@ -88,6 +88,20 @@ export function Paigutus() {
             </Anchor>
           </Group>
           <Group gap="xs" wrap="nowrap">
+            <Button
+              component={Link}
+              to="/teooria"
+              leftSection={<IconBook2 size={18} />}
+              variant={asukoht.pathname === '/teooria' ? 'light' : 'subtle'}
+              visibleFrom="sm"
+            >
+              Teooria
+            </Button>
+            <Tooltip label="Teooria">
+              <ActionIcon component={Link} to="/teooria" variant="subtle" size="lg" aria-label="Teooria" hiddenFrom="sm">
+                <IconBook2 size={20} />
+              </ActionIcon>
+            </Tooltip>
             <Button
               component={Link}
               to="/uus"

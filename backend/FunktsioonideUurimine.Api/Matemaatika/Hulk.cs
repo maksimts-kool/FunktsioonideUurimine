@@ -10,6 +10,12 @@ public readonly record struct Loik(double Algus, double Lopp, bool AlgusKaasa, b
         if (OnPunkt) return $"{{{Arv.Luhike(Algus)}}}";
         return $"{(AlgusKaasa ? "[" : "(")}{Arv.Luhike(Algus)}; {Arv.Luhike(Lopp)}{(LoppKaasa ? "]" : ")")}";
     }
+
+    public string Latex()
+    {
+        if (OnPunkt) return $"\\{{{Arv.Latex(Algus)}\\}}";
+        return $"{(AlgusKaasa ? "[" : "(")}{Arv.Latex(Algus)};\\ {Arv.Latex(Lopp)}{(LoppKaasa ? "]" : ")")}";
+    }
 }
 
 /// <summary>Lõikude ühend, nt määramispiirkond (-∞; 2) ∪ (2; ∞).</summary>
@@ -64,4 +70,6 @@ public sealed class Hulk(IReadOnlyList<Loik> loigud)
     public bool OnLoigus(double a, double b) => Loigud.All(l => l.Algus >= a - Tolerants && l.Lopp <= b + Tolerants);
 
     public string Tekst() => OnTuhi ? "∅" : string.Join(" ∪ ", Loigud.Select(l => l.Tekst()));
+
+    public string Latex() => OnTuhi ? "\\varnothing" : string.Join(" \\cup ", Loigud.Select(l => l.Latex()));
 }

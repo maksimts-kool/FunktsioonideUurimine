@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useFunktsioon, useKustuta } from '../api/paringud'
 import { GraafikuPaneel } from '../komponendid/GraafikuPaneel'
+import { Lahenduskaik } from '../komponendid/Lahenduskaik'
 import { OmadusteTabel } from '../komponendid/OmadusteTabel'
 import { Valem } from '../komponendid/Valem'
 import { kuupaev } from './vorming'
@@ -69,6 +70,10 @@ export function Detailvaade() {
           <GraafikuPaneel valem={f.valem} algus={f.vahemikAlgus} lopp={f.vahemikLopp} koikDetailid={koikDetailid} />
         </Grid.Col>
       </Grid>
+
+      {koikDetailid && (
+        <Lahenduskaik paering={{ valem: f.valem, vahemikAlgus: f.vahemikAlgus, vahemikLopp: f.vahemikLopp }} />
+      )}
     </Stack>
   )
 }

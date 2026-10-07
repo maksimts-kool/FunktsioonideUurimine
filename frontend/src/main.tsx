@@ -14,6 +14,8 @@ import { Avaleht } from './lehed/Avaleht'
 import { Detailvaade } from './lehed/Detailvaade'
 import { EiLeitud } from './lehed/EiLeitud'
 import { Paigutus } from './lehed/Paigutus'
+import { Salvestatud } from './lehed/Salvestatud'
+import { Teooria } from './lehed/Teooria'
 import { MuudaFunktsiooni, UusFunktsioon } from './lehed/Vormilehed'
 
 const teema = createTheme({
@@ -38,6 +40,8 @@ const marsruudid = createBrowserRouter([
     children: [
       { index: true, element: <Avaleht /> },
       { path: 'uus', element: <UusFunktsioon /> },
+      { path: 'teooria', element: <Teooria /> },
+      { path: 'funktsioonid', element: <Salvestatud /> },
       { path: 'funktsioon/:id', element: <Detailvaade /> },
       { path: 'funktsioon/:id/muuda', element: <MuudaFunktsiooni /> },
       { path: '*', element: <EiLeitud /> },

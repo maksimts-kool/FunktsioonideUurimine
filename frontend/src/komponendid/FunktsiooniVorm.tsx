@@ -21,6 +21,7 @@ import { ApiViga } from '../api/klient'
 import { useAnaluus } from '../api/paringud'
 import type { FunktsiooniPaering, FunktsiooniVastus } from '../api/tyybid'
 import { GraafikuPaneel } from './GraafikuPaneel'
+import { Lahenduskaik } from './Lahenduskaik'
 import { OmadusteTabel } from './OmadusteTabel'
 import { Valem } from './Valem'
 
@@ -169,6 +170,16 @@ export function FunktsiooniVorm({ algvaartused, nupuTekst, salvestab, onSalvesta
             />
           </Grid.Col>
         </Grid>
+      )}
+
+      {eelvaateAndmed && koikDetailid && (
+        <Lahenduskaik
+          paering={{
+            valem: eelvaateAndmed.valem,
+            vahemikAlgus: eelvaateAndmed.vahemikAlgus,
+            vahemikLopp: eelvaateAndmed.vahemikLopp,
+          }}
+        />
       )}
     </Stack>
   )

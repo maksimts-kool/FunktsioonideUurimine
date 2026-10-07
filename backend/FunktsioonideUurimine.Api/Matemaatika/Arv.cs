@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace FunktsioonideUurimine.Api.Matemaatika;
 
@@ -22,6 +23,51 @@ public static class Arv
         if (double.IsPositiveInfinity(v)) return "∞";
         if (double.IsNegativeInfinity(v)) return "-∞";
         return TapneKuju(v) ?? Kumnendkuju(v);
+    }
+
+    /// <summary>LaTeX-kuju: täpne kuju (\\frac{3\\pi}{2}, -\\sqrt{3}), kui see on olemas, muidu kümnendmurd.</summary>
+    public static string Latex(double v)
+    {
+        if (double.IsPositiveInfinity(v)) return "\\infty";
+        if (double.IsNegativeInfinity(v)) return "-\\infty";
+        return TapneKuju(v) is { } tapne ? TekstLatexiks(tapne) : Kumnendkuju(v);
+    }
+
+    /// <summary>"x = 2", "x = -\\sqrt{3} \\approx -1.7321" või "x \\approx 1.2346" LaTeX-is.</summary>
+    public static string VordusLatex(string nimi, double v)
+    {
+        var tapne = TapneKuju(v);
+        var kumnend = Kumnendkuju(v);
+        if (tapne is null) return $"{nimi} \\approx {kumnend}";
+        return tapne == kumnend ? $"{nimi} = {kumnend}" : $"{nimi} = {TekstLatexiks(tapne)} \\approx {kumnend}";
+    }
+
+    /// <summary>Kas arvul on "ilus" täpne kuju (täisarv, murd, juur, π jne)?</summary>
+    public static bool OnTapne(double v) => TapneKuju(v) is not null;
+
+    /// <summary>TapneKuju tekst LaTeX-iks: "(1 + √5)/2" → \\frac{1 + \\sqrt{5}}{2}, "-ln 3" → -\\ln 3.</summary>
+    private static string TekstLatexiks(string t)
+    {
+        static string Osa(string s)
+        {
+            if (s.StartsWith('(') && s.EndsWith(')')) s = s[1..^1];
+            s = Regex.Replace(s, @"√(\d+|e)", m => $"\\sqrt{{{m.Groups[1].Value}}}");
+            return s.Replace("π", "\\pi").Replace("e²", "e^{2}").Replace("e³", "e^{3}");
+        }
+
+        if (t.Contains("ln"))
+        {
+            var m = Regex.Match(t, @"^(-?)ln\((\d+)/(\d+)\)$");
+            return m.Success
+                ? $"{m.Groups[1].Value}\\ln\\frac{{{m.Groups[2].Value}}}{{{m.Groups[3].Value}}}"
+                : t.Replace("ln ", "\\ln ");
+        }
+        if (t.Count(c => c == '/') != 1) return Osa(t);
+
+        var mark = t.StartsWith('-') ? "-" : "";
+        var ilmaMargita = t[mark.Length..];
+        var jagaja = ilmaMargita.IndexOf('/');
+        return $"{mark}\\frac{{{Osa(ilmaMargita[..jagaja])}}}{{{Osa(ilmaMargita[(jagaja + 1)..])}}}";
     }
 
     /// <summary>"x = 2", "x = -√3 ≈ -1.7321" või "x ≈ 1.2346".</summary>

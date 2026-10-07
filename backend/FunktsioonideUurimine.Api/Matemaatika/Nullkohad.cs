@@ -86,7 +86,7 @@ public static class Nullkohad
     /// Jagab avaldise teguriteks: korrutise tegurid või summa ühine tegur
     /// (e^(-x) - x·e^(-x) = e^(-x)·(1 - x)). Tagastab null, kui tükeldada ei saa.
     /// </summary>
-    private static List<Expression>? Tegurid(Expression g)
+    internal static List<Expression>? Tegurid(Expression g)
     {
         if (g is Expression.Product korrutis)
         {
@@ -114,7 +114,7 @@ public static class Nullkohad
     /// Summa, milles ainult üks liidetav sõltub x-ist ja see on k·F(u), kus F on ln, lg, exp, c^u või √:
     /// võrrand k·F(u) + c = 0 teisendatakse kujule u - F⁻¹(-c/k) = 0. Lahendit pole → konstant 1.
     /// </summary>
-    private static Expression? Isoleeri(Expression.Sum summa)
+    internal static Expression? Isoleeri(Expression.Sum summa)
     {
         var xLiikmed = summa.Item.Where(Avaldised.SisaldabX).ToList();
         if (xLiikmed.Count != 1) return null;

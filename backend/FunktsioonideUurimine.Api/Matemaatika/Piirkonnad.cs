@@ -116,13 +116,13 @@ public static class Piirkonnad
         return (new Hulk(positiivne), new Hulk(negatiivne));
     }
 
-    private static double Testpunkt(double u, double v) =>
+    public static double Testpunkt(double u, double v) =>
         double.IsNegativeInfinity(u) && double.IsPositiveInfinity(v) ? 0
         : double.IsNegativeInfinity(u) ? v - 1
         : double.IsPositiveInfinity(v) ? u + 1
         : (u + v) / 2;
 
-    private static List<double> Sorteeritud(IEnumerable<double> punktid)
+    public static List<double> Sorteeritud(IEnumerable<double> punktid)
     {
         var tulemus = new List<double>();
         foreach (var p in punktid.Where(double.IsFinite).Order())

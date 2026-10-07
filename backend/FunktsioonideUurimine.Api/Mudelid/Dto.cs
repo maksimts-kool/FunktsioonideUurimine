@@ -66,3 +66,11 @@ public sealed record GraafikuVastus(
     string ValemLatex,
     string TuletisLatex,
     string TeineTuletisLatex);
+
+/// <summary>Samm-sammuline lahenduskäik: kuidas iga vastus leiti (tingimused, võrrandid, reeglid, märgitabelid).</summary>
+public sealed record LahenduskaiguVastus(
+    string Valem,
+    string ValemLatex,
+    double VahemikAlgus,
+    double VahemikLopp,
+    IReadOnlyList<LahenduseOsa> Osad);

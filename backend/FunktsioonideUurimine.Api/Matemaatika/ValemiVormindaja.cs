@@ -16,8 +16,36 @@ public static class ValemiVormindaja
 
     public static string Latex(Expression e) => new Kirjutaja(latex: true).V(e, 0);
 
+    /// <summary>LaTeX, milles x asemel on arv: f(-1) = (-1)^{3} - 3 \cdot (-1). Lahenduskäigu jaoks.</summary>
+    public static string LatexAsendusega(Expression e, double x)
+    {
+        var arv = Matemaatika.Arv.Latex(x);
+        var lihtne = arv.All(char.IsDigit) || arv == "\\pi";
+        return new Kirjutaja(latex: true, lihtne ? arv : $"\\left({arv}\\right)").V(e, 0);
+    }
+
+    /// <summary>Liidetavad samas järjekorras, nagu vormindaja need kirjutab (kahanev aste).</summary>
+    public static List<Expression> Jarjesta(IEnumerable<Expression> liikmed) =>
+        liikmed.Select((l, i) => (l, i)).OrderByDescending(t => Kirjutaja.MonoomiAste(t.l)).ThenBy(t => t.i)
+            .Select(t => t.l).ToList();
+
+    /// <summary>Sulud ümber LaTeX-i, kui see on (ülemisel tasemel) summa/vahe või algab miinusega.</summary>
+    public static string Sulgudes(string latex)
+    {
+        if (latex.StartsWith('-')) return $"\\left({latex}\\right)";
+        var sugavus = 0;
+        for (var i = 0; i < latex.Length; i++)
+        {
+            if (latex[i] == '{' || latex.AsSpan(i).StartsWith("\\left")) sugavus++;
+            else if (latex[i] == '}' || latex.AsSpan(i).StartsWith("\\right")) sugavus--;
+            else if (sugavus == 0 && (latex.AsSpan(i).StartsWith(" + ") || latex.AsSpan(i).StartsWith(" - ")))
+                return $"\\left({latex}\\right)";
+        }
+        return latex;
+    }
+
     // prioriteedid: 1 summa/unaarne miinus, 2 korrutis/jagatis, 3 aste, 4 funktsioon, 5 aatom
-    private sealed class Kirjutaja(bool latex)
+    private sealed class Kirjutaja(bool latex, string? xAsendus = null)
     {
         public string V(Expression e, int noutud)
         {
@@ -31,7 +59,7 @@ public static class ValemiVormindaja
             Expression.Number n => Arv(n.Item),
             Expression.Approximation { Item: Approximation.Real r } =>
                 (r.Item.ToString("G10", CultureInfo.InvariantCulture), r.Item < 0 ? 1 : 5),
-            Expression.Identifier id => (id.Item.Item, 5),
+            Expression.Identifier id => (xAsendus ?? id.Item.Item, 5),
             Expression.Constant c => (c.Item.IsPi ? (latex ? "\\pi" : "pi") : c.Item.IsE ? "e" : "i", 5),
             Expression.Sum s => (Summa(s.Item.ToList()), 1),
             Expression.Product p => Korrutis(p.Item.ToList()),
@@ -81,7 +109,7 @@ public static class ValemiVormindaja
             return sb.ToString();
         }
 
-        private static double MonoomiAste(Expression e) => e switch
+        internal static double MonoomiAste(Expression e) => e switch
         {
             Expression.Number or Expression.Constant => 0,
             Expression.Identifier => 1,
@@ -161,6 +189,7 @@ public static class ValemiVormindaja
                 {
                     if (!latex) sb.Append('*');
                     else if (char.IsDigit(osa[0])) sb.Append(" \\cdot "); // 2 · 3^x
+                    else if (xAsendus is not null && char.IsDigit(sb[^1])) sb.Append(" \\cdot "); // 1 · e^{-1}
                     else if (char.IsLetter(sb[^1]) && char.IsLetter(osa[0])) sb.Append(' ');
                 }
                 sb.Append(osa);

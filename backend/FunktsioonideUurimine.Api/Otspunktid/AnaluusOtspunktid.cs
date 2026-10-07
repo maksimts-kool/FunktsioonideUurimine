@@ -16,6 +16,8 @@ public static class AnaluusOtspunktid
 
         grupp.MapPost("/analuus", Analuusi)
             .WithSummary("Uuri funktsiooni ilma salvestamata (eelvaade)");
+        grupp.MapPost("/lahenduskaik", Lahenduskaik)
+            .WithSummary("Samm-sammuline lahenduskäik: kuidas iga vastus leiti");
         grupp.MapPost("/graafik", Graafik)
             .WithSummary("f(x), f'(x) ja f''(x) väärtused vahemikus antud sammuga ning erilised punktid");
     }
@@ -27,6 +29,13 @@ public static class AnaluusOtspunktid
             t.Nullkohad, t.Positiivsus, t.Tuletis, t.TuletisLatex, t.KriitilisedPunktid, t.Ekstreemumid,
             t.Monotoonsus, t.TeineTuletis, t.TeineTuletisLatex, t.Kaanupunktid, t.Kumerus,
             paering.VahemikAlgus, paering.VahemikLopp, t.Numbriline));
+    }
+
+    private static Ok<LahenduskaiguVastus> Lahenduskaik(FunktsiooniPaering paering, FunktsiooniAnaluusija analuusija)
+    {
+        var t = analuusija.Analuusi(paering.Valem, paering.VahemikAlgus, paering.VahemikLopp);
+        return TypedResults.Ok(new LahenduskaiguVastus(paering.Valem.Trim(), t.ValemLatex, paering.VahemikAlgus,
+            paering.VahemikLopp, LahenduskaiguKoostaja.Koosta(t)));
     }
 
     private static Ok<GraafikuVastus> Graafik(GraafikuPaering paering, FunktsiooniAnaluusija analuusija)

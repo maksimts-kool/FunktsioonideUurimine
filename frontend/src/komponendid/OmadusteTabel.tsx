@@ -1,6 +1,7 @@
-import { Badge, Button, Card, Group, Stack, Table, Text, Tooltip } from '@mantine/core'
+import { Anchor, Badge, Button, Card, Group, Stack, Table, Text, Tooltip } from '@mantine/core'
 import { IconChevronDown, IconChevronUp } from '@tabler/icons-react'
 import type { Omadused } from '../api/tyybid'
+import { naitaLahendust } from './lahendus'
 import { Valem } from './Valem'
 
 const VAHEMIKU_MARKUS = / \(vahemikus \[[^\]]*\]\)$/
@@ -46,6 +47,8 @@ function Vaartus({ tekst }: { tekst: string }) {
 }
 
 interface Rida {
+  /** Lahenduskäigu osa, kus seda vastust seletatakse. */
+  voti: string
   nimi: string
   tahis: string
   tekst: string
@@ -56,26 +59,26 @@ interface Rida {
 interface Props {
   omadused: Omadused
   pealkiri?: string
-  /** Kas kuvada ka tuletised, käänupunktid jm (muidu ainult põhivastused). */
+  /** Kas kuvada ka tuletised, käänupunktid jm ning lahenduskäigu viited (muidu ainult põhivastused). */
   koikDetailid: boolean
   onKoikDetailid: (v: boolean) => void
 }
 
-/** Põhivastused on kohe näha; ülejäänud omadused avanevad nupust „Näita rohkem“. */
+/** Põhivastused on kohe näha; „Näita rohkem“ avab ülejäänud omadused ja lahenduskäigu. */
 export function OmadusteTabel({ omadused: o, pealkiri = 'Vastused', koikDetailid, onKoikDetailid }: Props) {
   const pohiread: Rida[] = [
-    { nimi: 'Määramispiirkond', tahis: 'X', tekst: o.maaramispiirkond },
-    { nimi: 'Nullkohad', tahis: 'X₀', tekst: o.nullkohad },
-    { nimi: 'Ekstreemumid', tahis: 'yₑ', tekst: o.ekstreemumid },
-    { nimi: 'Kasvamis- ja kahanemisvahemikud', tahis: 'X↑, X↓', tekst: o.monotoonsus },
+    { voti: 'maaramispiirkond', nimi: 'Määramispiirkond', tahis: 'X', tekst: o.maaramispiirkond },
+    { voti: 'nullkohad', nimi: 'Nullkohad', tahis: 'X₀', tekst: o.nullkohad },
+    { voti: 'monotoonsus', nimi: 'Ekstreemumid', tahis: 'yₑ', tekst: o.ekstreemumid },
+    { voti: 'monotoonsus', nimi: 'Kasvamis- ja kahanemisvahemikud', tahis: 'X↑, X↓', tekst: o.monotoonsus },
   ]
   const lisaread: Rida[] = [
-    { nimi: 'Positiivsus- ja negatiivsuspiirkond', tahis: 'X⁺, X⁻', tekst: o.positiivsus },
-    { nimi: 'Tuletis', tahis: "f'(x)", tekst: o.tuletis, latex: o.tuletisLatex },
-    { nimi: 'Kriitilised punktid', tahis: 'xₑ', tekst: o.kriitilisedPunktid },
-    { nimi: 'Teine tuletis', tahis: "f''(x)", tekst: o.teineTuletis, latex: o.teineTuletisLatex },
-    { nimi: 'Käänupunktid', tahis: 'K', tekst: o.kaanupunktid },
-    { nimi: 'Nõgusus (∪) ja kumerus (∩)', tahis: 'X∪, X∩', tekst: o.kumerus },
+    { voti: 'positiivsus', nimi: 'Positiivsus- ja negatiivsuspiirkond', tahis: 'X⁺, X⁻', tekst: o.positiivsus },
+    { voti: 'tuletis', nimi: 'Tuletis', tahis: "f'(x)", tekst: o.tuletis, latex: o.tuletisLatex },
+    { voti: 'kriitilisedPunktid', nimi: 'Kriitilised punktid', tahis: 'xₑ', tekst: o.kriitilisedPunktid },
+    { voti: 'teineTuletis', nimi: 'Teine tuletis', tahis: "f''(x)", tekst: o.teineTuletis, latex: o.teineTuletisLatex },
+    { voti: 'kaanupunktid', nimi: 'Käänupunktid', tahis: 'K', tekst: o.kaanupunktid },
+    { voti: 'kaanupunktid', nimi: 'Nõgusus (∪) ja kumerus (∩)', tahis: 'X∪, X∩', tekst: o.kumerus },
   ]
   const read = koikDetailid ? [...pohiread, ...lisaread] : pohiread
 
@@ -97,7 +100,14 @@ export function OmadusteTabel({ omadused: o, pealkiri = 'Vastused', koikDetailid
                   >
                     {r.tahis}
                   </Badge>
-                  <Text size="sm" c="dimmed">{r.nimi}</Text>
+                  <Stack gap={0}>
+                    <Text size="sm" c="dimmed">{r.nimi}</Text>
+                    {koikDetailid && (
+                      <Anchor component="button" type="button" size="xs" ta="left" onClick={() => naitaLahendust(r.voti)}>
+                        Kuidas leiti?
+                      </Anchor>
+                    )}
+                  </Stack>
                 </Group>
               </Table.Td>
               <Table.Td>
@@ -115,7 +125,7 @@ export function OmadusteTabel({ omadused: o, pealkiri = 'Vastused', koikDetailid
         rightSection={koikDetailid ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
         onClick={() => onKoikDetailid(!koikDetailid)}
       >
-        {koikDetailid ? 'Näita vähem' : 'Näita rohkem'}
+        {koikDetailid ? 'Näita vähem' : 'Näita rohkem ja lahenduskäiku'}
       </Button>
     </Card>
   )

@@ -64,3 +64,44 @@ export interface GraafikuVastus {
   tuletisLatex: string
   teineTuletisLatex: string
 }
+
+/** Märgitabeli veerg: vahemik (märk testpunktist) või punkt (0 / ∄). LaTeX-väljad renderdab KaTeX. */
+export interface TabeliVeerg {
+  x: string
+  vahemik: boolean
+  /** "+", "−", "0" või "∄" */
+  mark: string
+  tahendus: string | null
+  /** testpunkti arvutus, nt "f'(-2) = 9" */
+  kontroll: string | null
+}
+
+export interface Margitabel {
+  margiRida: string
+  tahenduseRida: string | null
+  veerud: TabeliVeerg[]
+}
+
+/** Lahenduskäigu samm: tekst ($…$ – valem, **…** – paks kiri), eraldi real valem ja/või märgitabel. */
+export interface Samm {
+  tekst: string | null
+  valem: string | null
+  tabel: Margitabel | null
+}
+
+export interface LahenduseOsa {
+  /** vastab vastuste tabeli reale, nt "nullkohad" */
+  voti: string
+  pealkiri: string
+  sammud: Samm[]
+  vastused: string[]
+  numbriline: boolean
+}
+
+export interface LahenduskaiguVastus {
+  valem: string
+  valemLatex: string
+  vahemikAlgus: number
+  vahemikLopp: number
+  osad: LahenduseOsa[]
+}

@@ -1,0 +1,28 @@
+.kaart {
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    border-color 150ms ease;
+}
+
+.kaart:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--mantine-shadow-md);
+  border-color: var(--mantine-primary-color-filled);
+}
+
+.kaart:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+}
+
+.nool {
+  transition: transform 150ms ease;
+}
+
+.kaart:hover .nool {
+  transform: translateX(4px);
+}

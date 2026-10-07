@@ -4,6 +4,7 @@ import type {
   FunktsiooniVastus,
   GraafikuPaering,
   GraafikuVastus,
+  LahenduskaiguVastus,
 } from './tyybid'
 
 /** Serveri viga; `valjad` sisaldab valideerimisvigu väljade kaupa (ASP.NET ValidationProblemDetails). */
@@ -57,6 +58,8 @@ export const api = {
   kustuta: (id: number) => paring<void>(`/funktsioonid/${id}`, { method: 'DELETE' }),
   analuus: (p: FunktsiooniPaering, signal?: AbortSignal) =>
     paring<AnaluusiVastus>('/analuus', { method: 'POST', body: json(p), signal }),
+  lahenduskaik: (p: FunktsiooniPaering, signal?: AbortSignal) =>
+    paring<LahenduskaiguVastus>('/lahenduskaik', { method: 'POST', body: json(p), signal }),
   graafik: (p: GraafikuPaering, signal?: AbortSignal) =>
     paring<GraafikuVastus>('/graafik', { method: 'POST', body: json(p), signal }),
 }

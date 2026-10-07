@@ -8,6 +8,7 @@ export const votmed = {
   yks: (id: number) => ['funktsioonid', id] as const,
   analuus: (p: FunktsiooniPaering) => ['analuus', p] as const,
   graafik: (p: GraafikuPaering) => ['graafik', p] as const,
+  lahenduskaik: (p: FunktsiooniPaering) => ['lahenduskaik', p] as const,
 }
 
 export const useFunktsioonid = () => useQuery({ queryKey: votmed.koik, queryFn: api.funktsioonid })
@@ -29,6 +30,16 @@ export const useAnaluus = (p: FunktsiooniPaering | null) =>
   useQuery({
     queryKey: votmed.analuus(p ?? { valem: '', vahemikAlgus: 0, vahemikLopp: 0 }),
     queryFn: ({ signal }) => api.analuus(p!, signal),
+    enabled: p !== null && p.valem.trim() !== '',
+    placeholderData: keepPreviousData,
+    staleTime: Infinity,
+  })
+
+/** Samm-sammuline lahenduskäik; laaditakse alles siis, kui kasutaja avab „Näita rohkem“. */
+export const useLahenduskaik = (p: FunktsiooniPaering | null) =>
+  useQuery({
+    queryKey: votmed.lahenduskaik(p ?? { valem: '', vahemikAlgus: 0, vahemikLopp: 0 }),
+    queryFn: ({ signal }) => api.lahenduskaik(p!, signal),
     enabled: p !== null && p.valem.trim() !== '',
     placeholderData: keepPreviousData,
     staleTime: Infinity,

@@ -133,4 +133,25 @@ public class ApiTestid : IClassFixture<ApiTestid.Rakendus>
         Assert.Equal("(0; ∞)", analuus.Maaramispiirkond);
         Assert.Equal(enne, parast);
     }
+
+    [Fact]
+    public async Task Lahenduskaik_seletab_iga_vastuse()
+    {
+        var vastus = await _klient.PostAsJsonAsync("/api/lahenduskaik", new FunktsiooniPaering("x^3 - 3x", -3, 3), Ct);
+        Assert.Equal(HttpStatusCode.OK, vastus.StatusCode);
+
+        var kaik = (await vastus.Content.ReadFromJsonAsync<LahenduskaiguVastus>(Ct))!;
+        Assert.Equal(["maaramispiirkond", "nullkohad", "positiivsus", "tuletis", "kriitilisedPunktid", "monotoonsus",
+            "teineTuletis", "kaanupunktid"], kaik.Osad.Select(o => o.Voti));
+        var monotoonsus = kaik.Osad.Single(o => o.Voti == "monotoonsus");
+        Assert.Equal(["X↑ = (-∞; -1) ∪ (1; ∞); X↓ = (-1; 1)", "max f(-1) = 2; min f(1) = -2"], monotoonsus.Vastused);
+        Assert.Contains(monotoonsus.Sammud, s => s.Tabel is not null);
+    }
+
+    [Fact]
+    public async Task Lahenduskaik_kontrollib_valemit()
+    {
+        var vastus = await _klient.PostAsJsonAsync("/api/lahenduskaik", new FunktsiooniPaering("x^^2"), Ct);
+        Assert.Equal(HttpStatusCode.BadRequest, vastus.StatusCode);
+    }
 }
