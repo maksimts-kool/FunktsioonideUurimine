@@ -57,18 +57,6 @@ export function useLoo() {
   })
 }
 
-export function useMuuda(id: number) {
-  const klient = useQueryClient()
-  return useMutation({
-    mutationFn: (p: FunktsiooniPaering) => api.muuda(id, p),
-    onSuccess: (f) => {
-      klient.setQueryData(votmed.yks(f.id), f)
-      void klient.invalidateQueries({ queryKey: votmed.koik, exact: true })
-      notifications.show({ color: 'teal', title: 'Muudetud', message: `f(x) = ${f.valem}` })
-    },
-  })
-}
-
 export function useKustuta() {
   const klient = useQueryClient()
   return useMutation({

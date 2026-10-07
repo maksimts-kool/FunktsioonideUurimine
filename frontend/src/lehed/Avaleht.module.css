@@ -26,3 +26,25 @@
 .kaart:hover .nool {
   transform: translateX(4px);
 }
+
+/* Kogu kaart on klikitav link, aga kaardi sees võivad olla ka omad nupud (nt kustutamine) */
+.kaarditaust {
+  position: relative;
+}
+
+.katteLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.katteLink:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+}
+
+.kaardiNupp {
+  position: relative;
+  z-index: 2;
+}

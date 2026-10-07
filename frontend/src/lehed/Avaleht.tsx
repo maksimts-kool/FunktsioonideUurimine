@@ -35,7 +35,7 @@ const KAARDID: Kaart[] = [
   {
     ikoon: IconDeviceFloppy,
     pealkiri: 'Salvestatud funktsioonid',
-    kirjeldus: 'Kõik andmebaasi salvestatud uurimised – ava, muuda või kustuta.',
+    kirjeldus: 'Kõik andmebaasi salvestatud uurimised – ava või kustuta.',
     link: '/funktsioonid',
     varv: 'teal',
   },

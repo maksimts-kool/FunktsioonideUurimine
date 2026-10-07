@@ -53,8 +53,6 @@ export const api = {
   funktsioonid: () => paring<FunktsiooniVastus[]>('/funktsioonid'),
   funktsioon: (id: number) => paring<FunktsiooniVastus>(`/funktsioonid/${id}`),
   loo: (p: FunktsiooniPaering) => paring<FunktsiooniVastus>('/funktsioonid', { method: 'POST', body: json(p) }),
-  muuda: (id: number, p: FunktsiooniPaering) =>
-    paring<FunktsiooniVastus>(`/funktsioonid/${id}`, { method: 'PUT', body: json(p) }),
   kustuta: (id: number) => paring<void>(`/funktsioonid/${id}`, { method: 'DELETE' }),
   analuus: (p: FunktsiooniPaering, signal?: AbortSignal) =>
     paring<AnaluusiVastus>('/analuus', { method: 'POST', body: json(p), signal }),

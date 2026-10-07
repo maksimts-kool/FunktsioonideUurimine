@@ -1,8 +1,8 @@
 import { Alert, Button, Grid, Group, Loader, Stack, Text, Title } from '@mantine/core'
 import { modals } from '@mantine/modals'
-import { IconAlertTriangle, IconPencil, IconTrash } from '@tabler/icons-react'
+import { IconAlertTriangle, IconTrash } from '@tabler/icons-react'
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import { useFunktsioon, useKustuta } from '../api/paringud'
 import { GraafikuPaneel } from '../komponendid/GraafikuPaneel'
 import { Lahenduskaik } from '../komponendid/Lahenduskaik'
@@ -53,9 +53,6 @@ export function Detailvaade() {
           </Text>
         </div>
         <Group gap="xs">
-          <Button component={Link} to={`/funktsioon/${f.id}/muuda`} variant="default" leftSection={<IconPencil size={16} />}>
-            Muuda
-          </Button>
           <Button color="red" variant="light" leftSection={<IconTrash size={16} />} onClick={kinnitaKustutamine} loading={kustuta.isPending}>
             Kustuta
           </Button>
